@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}DEV STUDIO AC · FiveM Anticheat{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+{% block head %}{% endblock %}
+</head>
+<body>
+<div id="app">
+
+<nav>
+  <a class="brand" href="{{ url_for('index') }}">
+    <div class="brand-mark">D</div>
+    <div class="brand-name">DEV STUDIO <b>AC</b></div>
+  </a>
+  <div class="nav-mid">
+    <a href="{{ url_for('index') }}">Home</a>
+    <a href="{{ url_for('index') }}#features">Funzionalità</a>
+    <a href="{{ url_for('pricing') }}">Prezzi</a>
+    {% if current_user.is_authenticated %}
+    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+    {% endif %}
+  </div>
+  <div class="nav-right">
+    {% if current_user.is_authenticated %}
+    <a class="btn" href="{{ url_for('dashboard') }}" style="padding:9px 16px;font-size:13px">{{ current_user.email[:20] }}</a>
+    <a class="btn btn-primary" href="{{ url_for('logout') }}" style="padding:9px 16px;font-size:13px">Logout</a>
+    {% else %}
+    <a class="btn" href="{{ url_for('login') }}" style="padding:9px 16px">Accedi</a>
+    <a class="btn btn-primary" href="{{ url_for('register') }}" style="padding:9px 16px">Registrati</a>
+    {% endif %}
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<div class="mobile-overlay" id="mobileOverlay">
+  <a href="{{ url_for('index') }}">Home</a>
+  <a href="{{ url_for('index') }}#features">Funzionalità</a>
+  <a href="{{ url_for('pricing') }}">Prezzi</a>
+  {% if current_user.is_authenticated %}
+  <a href="{{ url_for('dashboard') }}">Dashboard</a>
+  <a class="btn btn-primary" href="{{ url_for('logout') }}">Logout</a>
+  {% else %}
+  <a class="btn" href="{{ url_for('login') }}">Accedi</a>
+  <a class="btn btn-primary" href="{{ url_for('register') }}">Registrati</a>
+  {% endif %}
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="flash-wrap">
+  {% for category, message in messages %}
+  <div class="flash {{ category }}">
+    {% if category == 'success' %}&#10003;{% elif category == 'danger' %}&#9888;{% else %}&#8505;{% endif %}
+    {{ message }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+{% block content %}{% endblock %}
+
+<footer>
+  <div class="foot-grid">
+    <div class="foot-brand">
+      <div class="brand" style="cursor:default">
+        <div class="brand-mark">D</div>
+        <div class="brand-name">DEV STUDIO <b>AC</b></div>
+      </div>
+      <p>Anticheat premium per FiveM. Protezione enterprise contro mod menu, aimbot, noclip e ogni cheat.</p>
+    </div>
+    <div class="foot-col">
+      <h4>Prodotto</h4>
+      <a href="{{ url_for('index') }}#features">Funzionalità</a>
+      <a href="{{ url_for('pricing') }}">Prezzi</a>
+      <a href="{{ url_for('index') }}#faq">FAQ</a>
+    </div>
+    <div class="foot-col">
+      <h4>Supporto</h4>
+      <a href="#">Documentazione</a>
+      <a href="#">Discord</a>
+      <a href="#">Contattaci</a>
+    </div>
+    <div class="foot-col">
+      <p style="color:var(--text-dim);font-size:14px;margin-bottom:14px">Proteggi il tuo server oggi stesso.</p>
+      <a class="btn btn-primary" href="{{ url_for('pricing') }}" style="padding:9px 16px;font-size:13px">Vedi Piani</a>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <div>&copy; 2026 DEV STUDIO AC. Tutti i diritti riservati.</div>
+    <div style="display:flex;gap:18px"><a style="cursor:pointer">Termini</a><a style="cursor:pointer">Privacy</a><a style="cursor:pointer">Licenza</a></div>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+</div>
+
+<script>
+function showToast(m){var t=document.getElementById("toast");if(!t)return;t.textContent=m;t.classList.add("show");clearTimeout(showToast._t);showToast._t=setTimeout(function(){t.classList.remove("show");},2200);}
+
+document.addEventListener('DOMContentLoaded', function(){
+  // Hamburger
+  var ham=document.getElementById('hamburger');var overlay=document.getElementById('mobileOverlay');
+  if(ham&&overlay){ham.addEventListener('click',function(){ham.classList.toggle('open');overlay.classList.toggle('open');document.body.style.overflow=overlay.classList.contains('open')?'hidden':'';});overlay.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){ham.classList.remove('open');overlay.classList.remove('open');document.body.style.overflow='';});});}
+  // FAQ
+  document.querySelectorAll('.faq-q').forEach(function(el){el.addEventListener('click',function(){el.parentElement.classList.toggle('open');});});
+  // Flash auto-dismiss
+  document.querySelectorAll('.flash').forEach(function(el){setTimeout(function(){el.style.opacity='0';el.style.transform='translateY(-12px)';setTimeout(function(){el.remove();},300);},4000);});
+  // Scroll animations
+  var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');}});},{threshold:0.1});
+  document.querySelectorAll('.fade-in').forEach(function(el){obs.observe(el);});
+});
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
