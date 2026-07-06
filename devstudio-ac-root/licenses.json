@@ -1,0 +1,32 @@
+{
+  "DSAC-B733D-F6C03-3343B-5BA2A": {
+    "key": "DSAC-B733D-F6C03-3343B-5BA2A",
+    "type": "monthly",
+    "created": "2026-07-04T04:57:15.115653Z",
+    "expires": "2026-08-03T04:57:15.115653Z",
+    "status": "active",
+    "note": "",
+    "server_ip": "",
+    "signature": "adf3580e963b2e27bd9861d273a042af96e34c58257aade3a6a579c197f779f0"
+  },
+  "DSAC-A47CA-A382C-C445E-E9EE3": {
+    "key": "DSAC-A47CA-A382C-C445E-E9EE3",
+    "type": "quarterly",
+    "created": "2026-07-04T04:57:15.156927Z",
+    "expires": "2026-10-02T04:57:15.156927Z",
+    "status": "active",
+    "note": "cliente@email.com",
+    "server_ip": "",
+    "signature": "2a24d80a46cf2beabc6c5e54794115c6da3058b1cead0b96752e8fcbe506a3f3"
+  },
+  "DSAC-4F658-3F4F7-744FC-090D4": {
+    "key": "DSAC-4F658-3F4F7-744FC-090D4",
+    "type": "yearly",
+    "created": "2026-07-04T04:57:15.199115Z",
+    "expires": "2027-07-04T04:57:15.199115Z",
+    "status": "active",
+    "note": "",
+    "server_ip": "",
+    "signature": "60d04b6f8196d77daaa0e76409507620439ceabf841db1d57b46dcd400939a19"
+  }
+}

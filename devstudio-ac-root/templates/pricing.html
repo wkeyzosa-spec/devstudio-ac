@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Prezzi · DEV STUDIO AC{% endblock %}
+{% block content %}
+
+<section class="section" style="padding-top:100px">
+  <div class="eyebrow">Piani semplici</div>
+  <div class="sec-title">Scegli il tuo<br><span class="grad">piano di protezione</span></div>
+  <div class="sec-sub">Un prezzo, tutte le funzionalità. Nessuna tassa nascosta, nessun upsell — solo protezione enterprise.</div>
+
+  <div class="pricing-grid" style="margin-top:3rem">
+    {% set tiers = [
+      ('monthly', 'Perfetto per provare', 19.99, 'al mese', ['Suite protezione completa', 'Tutti i metodi di rilevamento', 'Aggiornamenti inclusi', 'Supporto email'], false),
+      ('quarterly', 'Più popolare', 49.99, '€16.66/mese', ['Suite protezione completa', 'Tutti i metodi di rilevamento', 'Aggiornamenti inclusi', 'Supporto priority', '2 ticket Discord'], true),
+      ('yearly', 'Miglior valore', 119.99, '€10.00/mese', ['Suite protezione completa', 'Tutti i metodi di rilevamento', 'Aggiornamenti inclusi', 'Supporto priority', '5 ticket Discord'], false),
+      ('lifetime', 'Paga una volta', 199.99, 'non scade mai', ['Suite protezione completa', 'Tutti i metodi di rilevamento', 'Aggiornamenti a vita', 'Supporto premium', 'Ticket illimitati', 'Diritti di rivendita'], false),
+    ] %}
+    {% for tier, subtitle, price, period, features, popular in tiers %}
+    <div class="pricing-card {{ 'featured' if popular }}">
+      <div class="pricing-name">{{ tier|capitalize }}</div>
+      <div class="pricing-sub">{{ subtitle }}</div>
+      <div class="pricing-price"><span class="cur">€</span>{{ "%.0f"|format(price) if price == price|int else "%.2f"|format(price) }}</div>
+      <div class="pricing-period">{{ period }}</div>
+      <ul class="pricing-feats">
+        {% for f in features %}
+        <li><span class="ck">&#10003;</span> {{ f }}</li>
+        {% endfor %}
+      </ul>
+      {% if popular %}
+      <a class="btn btn-primary" href="{{ url_for('checkout', license_type=tier) }}">Inizia Ora &#8594;</a>
+      {% else %}
+      <a class="btn" href="{{ url_for('checkout', license_type=tier) }}">Seleziona &#8594;</a>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div style="text-align:center;margin-top:3rem">
+    <p style="color:var(--text-faint);font-size:13px">
+      Tutti i piani includono aggiornamenti gratuiti per la durata della licenza.
+      <br>Serve una soluzione personalizzata? <a href="#" style="color:var(--brand);font-weight:600">Contattaci</a>
+    </p>
+  </div>
+</section>
+
+{% endblock %}
