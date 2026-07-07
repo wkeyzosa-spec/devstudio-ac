@@ -171,7 +171,22 @@ class ServerPlayer(db.Model):
     live = db.Column(db.String(128), default='')
     fivem = db.Column(db.String(128), default='')
     playtime = db.Column(db.Integer, default=0)
+    pos_x = db.Column(db.Float, default=0.0)
+    pos_y = db.Column(db.Float, default=0.0)
+    pos_z = db.Column(db.Float, default=0.0)
+    country = db.Column(db.String(4), default='')
     last_seen = db.Column(db.DateTime, default=datetime.utcnow)
+
+class ServerCommand(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    server_id = db.Column(db.String(64), default='')
+    action = db.Column(db.String(32), default='')  # spectate, teleport, wipe
+    target_id = db.Column(db.Integer, default=0)
+    target_name = db.Column(db.String(128), default='')
+    admin_id = db.Column(db.Integer, default=0)
+    admin_name = db.Column(db.String(128), default='')
+    executed = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class ServerAdmin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -612,17 +627,85 @@ def build_config_groups(data):
     groups = {
         'Rilevamento Cheat': {},
         'Limiti e Soglie': {},
+        'Ban Components': {},
         'Protezioni Eventi': {},
-        'Extra': {},
+        'Messaggi': {},
+        'Webhook': {},
+        'Blacklist': {},
     }
+
     toggles = data.get('Components', {})
     limits = data.get('Limits', {})
+    ban_comps = data.get('BanComponents', {})
+    messages = data.get('Messages', {})
+    webhook = data.get('Webhook', {})
+    ban_webhooks = webhook.get('Ban', {}) if isinstance(webhook, dict) else {}
+
+    label_map = {
+        'AntiCheat': 'Anticheat', 'AntiSpectate': 'Anti-Spectate', 'AntiNoclip': 'Anti-Noclip',
+        'AntiCommands': 'Anti-Commands', 'AntiKeys': 'Anti-Keys', 'AntiESX': 'Anti-ESX',
+        'AntiWeapons': 'Anti-Weapons', 'AntiRemoveOtherPlayersWeapons': 'Anti-Weapon Steal',
+        'AntiCancelAnimations': 'Anti-Animation Cancel', 'StopOtherPlayersGivingEachOtherWeapons': 'Block Weapon Gifting',
+        'ModMenuChecks': 'Mod Menu Checks', 'StopUnauthorizedResources': 'Stop Unauthorized Resources',
+        'AntiAimbot': 'Anti-Aimbot', 'AntiVehicleSpawn': 'Anti-Vehicle Spawn',
+        'AntiWeaponSpawn': 'Anti-Weapon Spawn', 'AntiHealthArmor': 'Anti-Health/Armor',
+        'AntiTP': 'Anti-Teleport',
+    }
+
     for k, v in toggles.items():
-        group = 'Rilevamento Cheat'
-        if k in ('StopUnauthorizedResources', 'ModMenuChecks'): group = 'Extra'
-        groups[group][k] = {'label': k, 'desc': '', 'type': 'toggle', 'value': v}
+        label = label_map.get(k, k)
+        group = 'Limiti e Soglie'
+        if k in ('StopUnauthorizedResources', 'ModMenuChecks'):
+            group = 'Protezioni Eventi'
+        else:
+            group = 'Rilevamento Cheat'
+        groups[group][k] = {'label': label, 'desc': '', 'type': 'toggle', 'value': v}
+
+    for k, v in ban_comps.items():
+        label = label_map.get(k, k)
+        groups['Ban Components'][k] = {'label': label, 'desc': 'Auto-ban on detection', 'type': 'toggle', 'value': v}
+
+    limit_labels = {
+        'NoClipTriggerCount': 'NoClip Trigger', 'AimbotTriggerCount': 'Aimbot Trigger',
+        'TpTriggerCount': 'Teleport Trigger', 'TpMaxDistance': 'TP Max Distance',
+        'VehicleSpawnLimit': 'Vehicle Spawn Limit', 'WeaponSpawnLimit': 'Weapon Spawn Limit',
+    }
     for k, v in limits.items():
-        groups['Limiti e Soglie'][k] = {'label': k.replace('TriggerCount', ' Trigger').replace('Limit', ' Limit'), 'desc': '', 'type': 'number', 'value': v}
+        lbl = limit_labels.get(k, k.replace('TriggerCount', ' Trigger').replace('Limit', ' Limit'))
+        groups['Limiti e Soglie'][k] = {'label': lbl, 'desc': '', 'type': 'number', 'value': v}
+
+    for k, v in webhook.items():
+        if k == 'Ban' or k == 'JoinURL' or k == 'LeaveURL':
+            continue
+        if not isinstance(v, str) or not v.startswith('http'):
+            continue
+        groups['Webhook'][k] = {'label': f'Webhook {k}', 'desc': '', 'type': 'text', 'value': v[:60] + '...' if len(v) > 60 else v}
+
+    for k in ('JoinURL', 'LeaveURL'):
+        v = webhook.get(k, '')
+        if v:
+            groups['Webhook'][k] = {'label': f'Webhook {k}', 'desc': '', 'type': 'text', 'value': v[:60] + '...' if len(v) > 60 else v}
+
+    if ban_webhooks:
+        for category, url in ban_webhooks.items():
+            v = url or ''
+            if v:
+                groups['Webhook'][f'Ban_{category}'] = {'label': f'Ban Webhook ({category})', 'desc': '', 'type': 'text', 'value': v[:50] + '...' if len(v) > 50 else v}
+
+    msg_keys = list(messages.keys())[:8]
+    for k in msg_keys:
+        v = messages.get(k, '')
+        groups['Messaggi'][k] = {'label': k, 'desc': '', 'type': 'text', 'value': v[:70] + '...' if len(v) > 70 else v}
+
+    bl_categories = {
+        'BlacklistedWeapons': 'Weapons', 'BlacklistedEvents': 'Events',
+        'BlacklistedCommands': 'Commands', 'BlacklistedModels': 'Models',
+    }
+    for bl_key, bl_label in bl_categories.items():
+        items = data.get(bl_key, [])
+        if items:
+            groups['Blacklist'][bl_key] = {'label': f'{bl_label} ({len(items)})', 'desc': f'{len(items)} items', 'type': 'list', 'value': items[:5]}
+
     return groups
 
 # ---------- SERVER API ----------
@@ -658,7 +741,9 @@ def api_sync_players(server_id):
             name=p.get('name', ''), steam=p.get('steam', ''), ip=p.get('ip', ''),
             license=p.get('license', ''), discord=p.get('discord', ''),
             xbl=p.get('xbl', ''), live=p.get('live', ''), fivem=p.get('fivem', ''),
-            playtime=p.get('playtime', 0))
+            playtime=p.get('playtime', 0),
+            pos_x=p.get('pos_x', 0.0), pos_y=p.get('pos_y', 0.0), pos_z=p.get('pos_z', 0.0),
+            country=p.get('country', ''))
         db.session.add(sp)
     db.session.commit()
     return jsonify({'success': True, 'count': len(data)})
@@ -758,6 +843,74 @@ def api_server_console(server_id):
         'id': log.id, 'time': log.created_at.strftime('%H:%M:%S') if log.created_at else '--:--:--',
         'action': log.action, 'reason': log.reason, 'player_name': log.player_name
     } for log in logs]})
+
+@app.route('/api/server/<server_id>/status', methods=['GET'])
+@rate_limit(30, 60)
+def api_server_status(server_id):
+    srv = ServerInfo.query.filter_by(server_id=server_id).first()
+    if not srv:
+        return jsonify({'online': False, 'player_count': 0, 'staff_count': 0, 'uptime': '0h'})
+    return jsonify({
+        'online': srv.online,
+        'server_name': srv.server_name,
+        'player_count': srv.player_count,
+        'staff_count': srv.staff_count,
+        'uptime': srv.uptime,
+        'last_seen': srv.last_seen.isoformat() if srv.last_seen else None,
+    })
+
+@app.route('/api/server/<server_id>/command', methods=['POST'])
+@rate_limit(30, 60)
+def api_server_command(server_id):
+    data = request.get_json()
+    if not data or not data.get('action'):
+        return jsonify({'error': 'Missing action'}), 400
+    cmd = ServerCommand(
+        server_id=server_id,
+        action=data['action'],
+        target_id=int(data.get('target_id', 0)),
+        target_name=data.get('target_name', ''),
+        admin_id=int(data.get('admin_id', 0)),
+        admin_name=data.get('admin_name', ''),
+    )
+    db.session.add(cmd)
+    db.session.commit()
+    return jsonify({'success': True, 'command_id': cmd.id})
+
+@app.route('/api/server/<server_id>/commands/pending', methods=['GET'])
+@rate_limit(30, 60)
+def api_server_pending_commands(server_id):
+    cmds = ServerCommand.query.filter_by(server_id=server_id, executed=False).all()
+    return jsonify({'commands': [{
+        'id': c.id, 'action': c.action,
+        'target_id': c.target_id, 'target_name': c.target_name,
+        'admin_name': c.admin_name,
+    } for c in cmds]})
+
+@app.route('/api/server/<server_id>/commands/execute/<int:cmd_id>', methods=['POST'])
+@rate_limit(60, 60)
+def api_server_execute_command(server_id, cmd_id):
+    cmd = ServerCommand.query.get(cmd_id)
+    if not cmd:
+        return jsonify({'error': 'Command not found'}), 404
+    cmd.executed = True
+    db.session.commit()
+    return jsonify({'success': True})
+
+@app.route('/api/lookup-country', methods=['GET'])
+@rate_limit(30, 60)
+def api_lookup_country():
+    ip = request.args.get('ip', '')
+    if not ip:
+        return jsonify({'country': ''})
+    try:
+        import urllib.request
+        url = f'http://ip-api.com/json/{ip}?fields=countryCode'
+        resp = urllib.request.urlopen(url, timeout=3).read()
+        data = json.loads(resp)
+        return jsonify({'country': data.get('countryCode', '')})
+    except:
+        return jsonify({'country': ''})
 
 @app.route('/api/server/<server_id>/admins', methods=['POST'])
 @rate_limit(30, 60)

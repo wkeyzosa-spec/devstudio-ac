@@ -215,7 +215,7 @@
       </div>
       <div class="sd-table-wrap">
         <table class="sd-table" id="playerTable">
-          <thead><tr><th>ID</th><th>Name</th><th>Steam</th><th>IP</th><th>License</th><th>Discord</th><th>Playtime</th></tr></thead>
+          <thead><tr><th>ID</th><th>Name</th><th>Steam</th><th>IP</th><th>License</th><th>Discord</th><th>Playtime</th><th>Country</th></tr></thead>
           <tbody>
             {% for p in demo_players %}
             <tr>
@@ -226,6 +226,7 @@
               <td class="mono">{{ p.license[:20] }}...</td>
               <td class="mono">{{ p.discord[:18] }}...</td>
               <td class="mono">{{ p.playtime }}</td>
+              <td class="mono" style="font-size:11px">IT</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -488,6 +489,7 @@
           <div style="padding:3px 0;color:var(--text-dim)">License: <span id="drawerLicense" style="color:var(--text)">-</span></div>
           <div style="padding:3px 0;color:var(--text-dim)">Discord: <span id="drawerDiscord" style="color:var(--text)">-</span></div>
           <div style="padding:3px 0;color:var(--text-dim)">Playtime: <span id="drawerPlaytime" style="color:var(--text)">-</span></div>
+          <div style="padding:3px 0;color:var(--text-dim)">Country: <span id="drawerCountry" style="color:var(--text)">-</span></div>
         </div>
       </div>
       <div class="sd-card" style="margin-bottom:8px">
@@ -555,7 +557,8 @@ function openPlayerPanel(row){
     ip: cells[3] ? cells[3].textContent.trim() : '-',
     license: cells[4] ? cells[4].textContent.trim() : '-',
     discord: cells[5] ? cells[5].textContent.trim() : '-',
-    playtime: cells[6] ? cells[6].textContent.trim() : '-'
+    playtime: cells[6] ? cells[6].textContent.trim() : '-',
+    country: cells[7] ? cells[7].textContent.trim() : '-'
   };
   document.getElementById('drawerPlayerName').textContent = _drawerPlayer.name;
   document.getElementById('drawerPid').textContent = _drawerPlayer.id;
@@ -564,6 +567,7 @@ function openPlayerPanel(row){
   document.getElementById('drawerLicense').textContent = _drawerPlayer.license;
   document.getElementById('drawerDiscord').textContent = _drawerPlayer.discord;
   document.getElementById('drawerPlaytime').textContent = _drawerPlayer.playtime;
+  document.getElementById('drawerCountry').textContent = _drawerPlayer.country;
   document.getElementById('playerOverlay').classList.add('open');
   document.getElementById('playerDrawer').classList.add('open');
 }

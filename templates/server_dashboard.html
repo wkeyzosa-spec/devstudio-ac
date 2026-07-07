@@ -191,7 +191,7 @@
       </div>
       <div class="sd-table-wrap">
         <table class="sd-table" id="playerTable">
-          <thead><tr><th>ID</th><th>Name</th><th>Steam</th><th>IP</th><th>License</th><th>Discord</th><th>Playtime</th><th>Actions</th></tr></thead>
+          <thead><tr><th>ID</th><th>Name</th><th>Steam</th><th>IP</th><th>License</th><th>Discord</th><th>Playtime</th><th>Country</th><th>Actions</th></tr></thead>
           <tbody id="players-body">
             {% if players %}
             {% for p in players %}
@@ -203,6 +203,7 @@
               <td class="mono">{{ p.license[:20] if p.license else '-' }}{% if p.license and p.license|length > 20 %}...{% endif %}</td>
               <td class="mono">{{ p.discord[:18] if p.discord else '-' }}{% if p.discord and p.discord|length > 18 %}...{% endif %}</td>
               <td class="mono">{{ p.playtime or '0m' }}</td>
+              <td class="mono" style="font-size:11px">{{ p.country or '-' }}</td>
               <td style="white-space:nowrap">
                 <button class="sd-act-btn" onclick="banPlayer('{{ p.id }}','{{ p.name|e }}')">Ban</button>
                 <button class="sd-act-btn danger" onclick="kickPlayer('{{ p.id }}','{{ p.name|e }}')">Kick</button>
@@ -210,7 +211,7 @@
             </tr>
             {% endfor %}
             {% else %}
-            <tr><td colspan="8" class="sd-empty" style="padding:24px">No players online</td></tr>
+            <tr><td colspan="9" class="sd-empty" style="padding:24px">No players online</td></tr>
             {% endif %}
           </tbody>
         </table>
@@ -371,6 +372,10 @@
           <div class="sd-toggle {{ 'on' if cfg.value else '' }}" data-key="{{ key }}" onclick="toggleConfig(this)"></div>
           {% elif cfg.type == 'number' %}
           <span class="val">{{ cfg.value }}</span>
+          {% elif cfg.type == 'text' %}
+          <span class="val" style="font-size:9px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ cfg.value }}">{{ cfg.value }}</span>
+          {% elif cfg.type == 'list' %}
+          <span class="val" style="font-size:9px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ cfg.value|join(', ') }}</span>
           {% else %}
           <span class="val">{{ cfg.value }}</span>
           {% endif %}
@@ -487,6 +492,7 @@
           <div style="padding:3px 0;color:var(--text-dim)">XBL: <span id="drawerXbl" style="color:var(--text)">-</span></div>
           <div style="padding:3px 0;color:var(--text-dim)">Live: <span id="drawerLive" style="color:var(--text)">-</span></div>
           <div style="padding:3px 0;color:var(--text-dim)">Playtime: <span id="drawerPlaytime" style="color:var(--text)">-</span></div>
+          <div style="padding:3px 0;color:var(--text-dim)">Country: <span id="drawerCountry" style="color:var(--text)">-</span></div>
         </div>
       </div>
       <div class="sd-card" style="margin-bottom:8px">
@@ -599,7 +605,8 @@ function openPlayerPanel(el){
     ip: cells[3] ? cells[3].textContent.trim() : '-',
     license: cells[4] ? cells[4].textContent.trim() : '-',
     discord: cells[5] ? cells[5].textContent.trim() : '-',
-    playtime: cells[6] ? cells[6].textContent.trim() : '-'
+    playtime: cells[6] ? cells[6].textContent.trim() : '-',
+    country: cells[7] ? cells[7].textContent.trim() : '-'
   };
   document.getElementById('drawerPlayerName').textContent = _drawerPlayer.name;
   document.getElementById('drawerPid').textContent = _drawerPlayer.id;
@@ -610,6 +617,7 @@ function openPlayerPanel(el){
   document.getElementById('drawerXbl').textContent = '-';
   document.getElementById('drawerLive').textContent = '-';
   document.getElementById('drawerPlaytime').textContent = _drawerPlayer.playtime;
+  document.getElementById('drawerCountry').textContent = _drawerPlayer.country;
   document.getElementById('playerOverlay').classList.add('open');
   document.getElementById('playerDrawer').classList.add('open');
 }
@@ -633,24 +641,30 @@ function drawerWarn(){
   if(!_drawerPlayer) return;
   var reason = prompt('Warn reason for ' + _drawerPlayer.name + ':');
   if(!reason) return;
-  showToast('Warning sent to ' + _drawerPlayer.name);
+  fetch('/api/server/{{ server_id }}/log', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({player_name: _drawerPlayer.name, reason: reason, action: 'warn', detections: 1})
+  }).then(function(r){ return r.json(); }).then(function(j){
+    showToast(j.success ? 'Warning sent to ' + _drawerPlayer.name : 'Error sending warn');
+    if(j.success) closePlayerPanel();
+  }).catch(function(){ showToast('Connection error'); });
 }
 
-function drawerSpectate(){
+function sendCommand(action, label){
   if(!_drawerPlayer) return;
-  showToast('Spectate: ' + _drawerPlayer.name + ' (richiesta inoltrata al server)');
+  if(!confirm(label + ' ' + _drawerPlayer.name + '?')) return;
+  fetch('/api/server/{{ server_id }}/command', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({action: action, target_id: _drawerPlayer.id, target_name: _drawerPlayer.name})
+  }).then(function(r){ return r.json(); }).then(function(j){
+    showToast(j.success ? label + ' request sent to ' + _drawerPlayer.name : 'Error');
+    if(j.success) closePlayerPanel();
+  }).catch(function(){ showToast('Connection error'); });
 }
 
-function drawerTeleport(){
-  if(!_drawerPlayer) return;
-  showToast('Teleport to ' + _drawerPlayer.name + ' (richiesta inoltrata al server)');
-}
-
-function drawerWipe(){
-  if(!_drawerPlayer) return;
-  if(!confirm('Wipe all entities for ' + _drawerPlayer.name + '?')) return;
-  showToast('Entities wiped for ' + _drawerPlayer.name);
-}
+function drawerSpectate(){ sendCommand('spectate', 'Spectate'); }
+function drawerTeleport(){ sendCommand('teleport', 'Teleport to'); }
+function drawerWipe(){ sendCommand('wipe', 'Wipe entities for'); }
 
 // Make player rows clickable
 document.addEventListener('DOMContentLoaded', function(){
@@ -676,7 +690,15 @@ var _mapOutline = [
   {x:0.08,y:0.20},{x:0.10,y:0.12},{x:0.10,y:0.05}
 ];
 
-// Demo player positions (normalized 0-1)
+// Real player positions from DB (fallback to demo mock)
+var _playerPositions = [
+  {% if players %}
+  {% for p in players %}
+  {name:'{{ p.name|e }}',x:{{ p.pos_x or 0.35 }},y:{{ p.pos_y or 0.40 }},z:{{ p.pos_z or 0 }}},
+  {% endfor %}
+  {% endif %}
+];
+// Demo fallback for players without coords
 var _demoPositions = [
   {name:'Marco_Rossi',x:0.35,y:0.40},{name:'Luca_Verde',x:0.55,y:0.30},{name:'Giovanni_Neri',x:0.45,y:0.55},{name:'Francesco_Blu',x:0.30,y:0.70},
   {name:'Andrea_Gialli',x:0.60,y:0.60},{name:'Stefano_Viola',x:0.50,y:0.45},{name:'Alessandro_Bianchi',x:0.40,y:0.25},{name:'Matteo_Marrone',x:0.70,y:0.40}
@@ -741,7 +763,15 @@ function drawMap(){
   var players = document.querySelectorAll('#playerTable tbody tr');
   players.forEach(function(row, idx){
     var name = row.cells[1] ? row.cells[1].textContent.trim() : 'Player';
-    var pos = _demoPositions[idx % _demoPositions.length];
+    // Try real position first, fallback to demo
+    var realPos = null;
+    for(var pi=0; pi<_playerPositions.length; pi++){
+      if(_playerPositions[pi].name === name && (_playerPositions[pi].x !== 0 || _playerPositions[pi].y !== 0)){
+        realPos = _playerPositions[pi];
+        break;
+      }
+    }
+    var pos = realPos || _demoPositions[idx % _demoPositions.length];
     if(!pos) return;
     var px = cx + (pos.x - 0.5) * scale;
     var py = cy + (pos.y - 0.5) * scale;
@@ -776,16 +806,13 @@ function rebuildStreamGrid(){
 
 // ─── Lookup ───
 function doLookup(){
-  var q = document.getElementById('lookupInput').value.trim();
+  var q = document.getElementById('lookupInput').value.trim().toLowerCase();
   if(!q){ showToast('Inserisci un identifier'); return; }
   var rows = document.querySelectorAll('#playerTable tbody tr');
   var found = null;
   rows.forEach(function(row){
     if(found) return;
-    var txt = row.textContent.toLowerCase();
-    if(txt.includes(q.toLowerCase())){
-      found = row;
-    }
+    if(row.textContent.toLowerCase().includes(q)) found = row;
   });
   var lookupResults = document.getElementById('lookupResults');
   var lookupEmpty = document.getElementById('lookupEmpty');
@@ -804,10 +831,31 @@ function doLookup(){
     });
     lookupResults.style.display = 'block';
     lookupEmpty.style.display = 'none';
-    document.getElementById('lookupBanHistory').innerHTML = '<div style="padding:8px 0;font-size:12px;color:var(--text-dim)">Nessun ban precedente trovato per questo giocatore</div>';
+    // Search bans from DB via API
+    var banHtml = '<div style="padding:4px 0;font-size:11px;color:var(--text-faint)">Caricamento...</div>';
+    document.getElementById('lookupBanHistory').innerHTML = banHtml;
+    fetch('/api/server/{{ server_id }}/bans')
+    .then(function(r){ return r.json(); }).then(function(bans){
+      var matched = '';
+      var count = 0;
+      for(var name in bans){
+        if(!bans.hasOwnProperty(name)) continue;
+        var b = bans[name];
+        var vals = (name + ' ' + b.reason + ' ' + (b.steam||'') + ' ' + (b.ip||'') + ' ' + (b.license||'') + ' ' + (b.discord||'')).toLowerCase();
+        if(vals.includes(q)){
+          count++;
+          matched += '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px">' +
+            '<span>' + name + '</span><span class="sd-pill ban" style="font-size:9px">#' + b.ID + '</span></div>' +
+            '<div style="font-size:10px;color:var(--text-faint);padding:0 0 5px 0;margin-top:-3px">' + b.reason + '</div>';
+        }
+      }
+      document.getElementById('lookupBanHistory').innerHTML = count ? matched : '<div style="padding:8px 0;font-size:12px;color:var(--text-dim)">Nessun ban trovato per questo giocatore</div>';
+    }).catch(function(){
+      document.getElementById('lookupBanHistory').innerHTML = '<div style="padding:8px 0;font-size:12px;color:var(--text-dim)">Errore caricamento storico ban</div>';
+    });
     document.getElementById('lookupActions').innerHTML =
-      '<button class="btn btn-sm btn-primary" onclick="banPlayer(' + data['ID'] + ',\'' + data['Name'] + '\')">Ban</button>' +
-      '<button class="btn btn-sm" style="color:var(--amber);border-color:var(--amber)" onclick="kickPlayer(' + data['ID'] + ',\'' + data['Name'] + '\')">Kick</button>';
+      '<button class="btn btn-sm btn-primary" onclick="banPlayer(' + data['ID'] + ',\'' + data['Name'].replace(/'/g,"\\'") + '\')">Ban</button>' +
+      '<button class="btn btn-sm" style="color:var(--amber);border-color:var(--amber)" onclick="kickPlayer(' + data['ID'] + ',\'' + data['Name'].replace(/'/g,"\\'") + '\')">Kick</button>';
   } else {
     lookupResults.style.display = 'none';
     lookupEmpty.style.display = 'block';
@@ -816,6 +864,33 @@ function doLookup(){
 }
 
 // ─── Console ───
+var _consoleLastId = 0;
+
+function pollConsole(){
+  fetch('/api/server/{{ server_id }}/console?after=' + _consoleLastId)
+  .then(function(r){ return r.json(); }).then(function(j){
+    if(j.logs && j.logs.length){
+      var out = document.getElementById('consoleOutput');
+      var cursor = document.getElementById('consoleCursor');
+      j.logs.forEach(function(log){
+        if(log.id > _consoleLastId) _consoleLastId = log.id;
+        var color = 'var(--text-dim)';
+        if(log.action === 'ban') color = 'var(--danger)';
+        else if(log.action === 'kick') color = 'var(--amber)';
+        else if(log.action === 'warn') color = '#60a5fa';
+        var d = document.createElement('div');
+        d.className = 'term-line';
+        d.style.cssText = 'opacity:1;color:' + color + ';padding:1px 0';
+        d.textContent = '[' + log.time + '] ' + log.action.toUpperCase() + ' — ' + (log.reason || '') + (log.player_name ? ' (' + log.player_name + ')' : '');
+        if(cursor) out.insertBefore(d, cursor);
+      });
+      out.scrollTop = out.scrollHeight;
+    }
+  }).catch(function(){});
+}
+
+setInterval(pollConsole, 5000);
+
 function executeConsoleCmd(){
   var input = document.getElementById('consoleInput');
   var cmd = input.value.trim();
@@ -823,13 +898,12 @@ function executeConsoleCmd(){
   var output = document.getElementById('consoleOutput');
   var ts = new Date().toLocaleTimeString('it-IT', {hour12:false});
   output.insertBefore(createTermLine('$ ' + cmd, 'var(--brand)'), document.getElementById('consoleCursor'));
-  // Process mock commands
   var response = '';
   var c = cmd.toLowerCase();
   if(c === 'help') response = 'Comandi: help, status, players, bans, uptime, clear';
-  else if(c === 'status') response = 'Server: ONLINE | Players: ' + (document.querySelectorAll('#playerTable tbody tr').length - (document.querySelector('#playerTable tbody tr td.sd-empty') ? 1 : 0)) + ' | Bans: ' + document.querySelectorAll('#banTable tbody tr').length + ' | Uptime: {{ stats.uptime }}';
-  else if(c === 'players') response = 'Giocatori connessi: ' + (document.querySelectorAll('#playerTable tbody tr').length);
-  else if(c === 'bans') response = 'Totale ban: ' + document.querySelectorAll('#banTable tbody tr').length;
+  else if(c === 'status') response = 'Server: ONLINE | Players: {{ stats.online }} | Bans: {{ stats.total_bans }} | Uptime: {{ stats.uptime }}';
+  else if(c === 'players') response = 'Giocatori connessi: {{ stats.online }}';
+  else if(c === 'bans') response = 'Totale ban: {{ stats.total_bans }}';
   else if(c === 'uptime') response = 'Uptime server: {{ stats.uptime }}';
   else if(c === 'clear'){ document.getElementById('consoleOutput').innerHTML = '<div id="consoleCursor">▋</div>'; input.value = ''; return; }
   else response = 'Comando non riconosciuto: ' + cmd + '. Digita "help" per la lista comandi.';
@@ -852,13 +926,18 @@ function clearConsole(){
 }
 
 // ─── Auto-refresh dashboard data ───
-setInterval(function(){
-  // Simulate updating stats in real-time
-  var onlineEl = document.getElementById('stat-online');
-  if(onlineEl){
-    var v = parseInt(onlineEl.textContent) || 0;
-    onlineEl.textContent = Math.max(0, v + Math.round(Math.random() * 2 - 1));
-  }
-}, 8000);
+function refreshDashboard(){
+  fetch('/api/server/{{ server_id }}/status')
+  .then(function(r){ return r.json(); }).then(function(s){
+    var el = document.getElementById('stat-online');
+    if(el && s.player_count !== undefined) el.textContent = s.player_count;
+    el = document.getElementById('stat-staff');
+    if(el && s.staff_count !== undefined) el.textContent = s.staff_count;
+    el = document.getElementById('stat-uptime');
+    if(el && s.uptime) el.textContent = s.uptime;
+  }).catch(function(){});
+}
+
+setInterval(refreshDashboard, 10000);
 </script>
 {% endblock %}
