@@ -581,6 +581,9 @@ local function FetchConfigFromPanel()
         local webConfig = data.config
         local components = webConfig.Components
         local limits = webConfig.Limits
+        local ban_comps = webConfig.BanComponents
+        local messages = webConfig.Messages
+        local webhook = webConfig.Webhook
         if components then
             for key, val in pairs(components) do
                 Config.Components[key] = val == true
@@ -590,6 +593,44 @@ local function FetchConfigFromPanel()
         if limits then
             for key, val in pairs(limits) do
                 PanelConfig.Set(key, tonumber(val) or PanelConfig.Defaults[key])
+            end
+        end
+        if ban_comps then
+            for key, val in pairs(ban_comps) do
+                Config.BanComponents[key] = val == true
+                PanelConfig.Set(key, val == true)
+            end
+        end
+        if messages then
+            for key, val in pairs(messages) do
+                if type(val) == 'string' and Config.Messages[key] ~= nil then
+                    Config.Messages[key] = val
+                    PanelConfig.Set(key, val)
+                end
+            end
+        end
+        if webhook then
+            for key, val in pairs(webhook) do
+                if type(val) == 'string' and Config.Webhook[key] ~= nil then
+                    Config.Webhook[key] = val
+                    PanelConfig.Set(key, val)
+                elseif type(val) == 'table' and key == 'Ban' and type(Config.Webhook.Ban) == 'table' then
+                    for cat, url in pairs(val) do
+                        if type(url) == 'string' and Config.Webhook.Ban[cat] ~= nil then
+                            Config.Webhook.Ban[cat] = url
+                            PanelConfig.Set('Ban_' .. cat, url)
+                        end
+                    end
+                end
+            end
+        end
+        -- Blacklisted* arrays (weapons, events, commands, models)
+        local bl_keys = {'BlacklistedWeapons', 'BlacklistedEvents', 'BlacklistedCommands', 'BlacklistedModels'}
+        for _, bl_key in ipairs(bl_keys) do
+            local items = webConfig[bl_key]
+            if items and type(items) == 'table' and #items > 0 then
+                Config[bl_key] = items
+                PanelConfig.Set(bl_key, items)
             end
         end
         PanelConfig.Save()

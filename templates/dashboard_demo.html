@@ -400,7 +400,7 @@
       <div class="sd-top"><div><h2>Detection <span style="color:var(--brand)">Logs</span></h2><div class="sub">Recent anticheat activity</div></div>
         <div style="display:flex;gap:6px">
           <select id="logFilter" onchange="filterLogs()" style="background:var(--bg-2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:11px;font-family:var(--mono);outline:none">
-            <option value="all">All</option><option value="ban">Bans</option><option value="kick">Kicks</option><option value="flag">Flags</option>
+            <option value="all">All</option><option value="ban">Bans</option><option value="kick">Kicks</option><option value="warn">Warnings</option><option value="flag">Flags</option>
           </select>
         </div>
       </div>
@@ -688,37 +688,43 @@ function rebuildStreamGrid(){
 function doLookup(){
   var q = document.getElementById('lookupInput').value.trim();
   if(!q){ showToast('Inserisci un identifier'); return; }
-  // Search demo players
-  var players = [
-    {% for p in demo_players %}
-    {id:'{{ p.id }}',name:'{{ p.name }}',steam:'{{ p.steam }}',ip:'{{ p.ip }}',license:'{{ p.license }}',discord:'{{ p.discord }}',playtime:'{{ p.playtime }}'},
-    {% endfor %}
-  ];
-  var found = null;
-  var ql = q.toLowerCase();
-  players.forEach(function(p){
-    if(found) return;
-    Object.keys(p).forEach(function(k){
-      if(p[k].toLowerCase().includes(ql)) found = p;
-    });
-  });
   var lookupResults = document.getElementById('lookupResults');
   var lookupEmpty = document.getElementById('lookupEmpty');
-  if(found){
-    var body = document.getElementById('lookupBody');
-    body.innerHTML = '';
-    Object.keys(found).forEach(function(k){
-      body.innerHTML += '<tr><td style="font-weight:600;color:var(--text-dim);font-size:11px">' + k.charAt(0).toUpperCase() + k.slice(1) + '</td><td class="mono">' + found[k] + '</td></tr>';
+  lookupResults.style.display = 'none';
+  lookupEmpty.style.display = 'block';
+  lookupEmpty.innerHTML = '<div style="padding:12px;color:var(--text-faint);font-size:11px">🔍 Cerco in corso...</div>';
+  // Simulate search delay
+  setTimeout(function(){
+    var players = [
+      {% for p in demo_players %}
+      {id:'{{ p.id }}',name:'{{ p.name }}',steam:'{{ p.steam }}',ip:'{{ p.ip }}',license:'{{ p.license }}',discord:'{{ p.discord }}',playtime:'{{ p.playtime }}'},
+      {% endfor %}
+    ];
+    var found = null;
+    var ql = q.toLowerCase();
+    players.forEach(function(p){
+      if(found) return;
+      Object.keys(p).forEach(function(k){
+        if(p[k].toLowerCase().includes(ql)) found = p;
+      });
     });
-    lookupResults.style.display = 'block';
-    lookupEmpty.style.display = 'none';
-    document.getElementById('lookupBanHistory').innerHTML = '<div style="padding:8px 0;font-size:12px;color:var(--text-dim)">Nessun ban precedente trovato per questo giocatore</div>';
-    document.getElementById('lookupActions').innerHTML = '<span style="font-size:11px;color:var(--text-dim)">Azioni disponibili nella dashboard live</span>';
-  } else {
-    lookupResults.style.display = 'none';
-    lookupEmpty.style.display = 'block';
-    lookupEmpty.innerHTML = '<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--danger)" stroke-width="1.5" style="margin-bottom:10px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="8" x2="14" y2="14"/></svg><div>Nessun risultato per <strong>' + q + '</strong></div>';
-  }
+    if(found){
+      var body = document.getElementById('lookupBody');
+      body.innerHTML = '';
+      Object.keys(found).forEach(function(k){
+        body.innerHTML += '<tr><td style="font-weight:600;color:var(--text-dim);font-size:11px">' + k.charAt(0).toUpperCase() + k.slice(1) + '</td><td class="mono">' + found[k] + '</td></tr>';
+      });
+      lookupResults.style.display = 'block';
+      lookupEmpty.style.display = 'none';
+      document.getElementById('lookupBanHistory').innerHTML = '<div style="padding:8px 0;font-size:12px;color:var(--text-dim)">Nessun ban precedente trovato per questo giocatore</div>';
+      document.getElementById('lookupActions').innerHTML = '<span style="font-size:11px;color:var(--text-dim)">Azioni disponibili nella dashboard live</span>';
+    } else {
+      lookupResults.style.display = 'none';
+      lookupEmpty.style.display = 'block';
+      lookupEmpty.innerHTML = '<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--danger)" stroke-width="1.5" style="margin-bottom:10px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="8" x2="14" y2="14"/></svg><div>Nessun risultato per <strong>' + q + '</strong></div>';
+    }
+  }, 400);
+}
 }
 
 // ─── Console ───

@@ -456,6 +456,81 @@ def api_check_ban():
                 return jsonify({'banned': True, 'ban_id': ban.ban_id, 'reason': ban.reason, 'date': ban.banned_at.isoformat()})
     return jsonify({'banned': False})
 
+@app.route('/api/lookup', methods=['GET'])
+@rate_limit(60, 60)
+def api_lookup():
+    q = request.args.get('q', '').strip()
+    if not q:
+        return jsonify({'error': 'No query'}), 400
+    results = []
+    # Search ServerBan table
+    srv_bans = ServerBan.query.filter(
+        (ServerBan.player_name.ilike(f'%{q}%')) |
+        (ServerBan.steam.ilike(f'%{q}%')) |
+        (ServerBan.ip.ilike(f'%{q}%')) |
+        (ServerBan.license.ilike(f'%{q}%')) |
+        (ServerBan.discord.ilike(f'%{q}%'))
+    ).order_by(ServerBan.banned_at.desc()).limit(20).all()
+    for b in srv_bans:
+        results.append({
+            'source': 'server_ban',
+            'ban_id': b.ban_id,
+            'server_id': b.server_id,
+            'player_name': b.player_name,
+            'reason': b.reason,
+            'category': b.category,
+            'steam': b.steam,
+            'ip': b.ip,
+            'license': b.license,
+            'discord': b.discord,
+            'date': b.banned_at.isoformat() if b.banned_at else None,
+        })
+    # Search legacy Ban table
+    legacy_bans = Ban.query.filter(
+        (Ban.player_name.ilike(f'%{q}%')) |
+        (Ban.steam.ilike(f'%{q}%')) |
+        (Ban.ip.ilike(f'%{q}%')) |
+        (Ban.license.ilike(f'%{q}%')) |
+        (Ban.discord.ilike(f'%{q}%'))
+    ).order_by(Ban.banned_at.desc()).limit(20).all()
+    for b in legacy_bans:
+        results.append({
+            'source': 'legacy',
+            'ban_id': b.ban_id,
+            'server_id': b.server_id,
+            'player_name': b.player_name,
+            'reason': b.reason,
+            'category': b.category,
+            'steam': b.steam,
+            'ip': b.ip,
+            'license': b.license,
+            'discord': b.discord,
+            'date': b.banned_at.isoformat() if b.banned_at else None,
+        })
+    # Search current online players
+    players = ServerPlayer.query.filter(
+        (ServerPlayer.name.ilike(f'%{q}%')) |
+        (ServerPlayer.steam.ilike(f'%{q}%')) |
+        (ServerPlayer.ip.ilike(f'%{q}%')) |
+        (ServerPlayer.license.ilike(f'%{q}%')) |
+        (ServerPlayer.discord.ilike(f'%{q}%'))
+    ).all()
+    for p in players:
+        results.append({
+            'source': 'online',
+            'server_id': p.server_id,
+            'player_name': p.name,
+            'steam': p.steam,
+            'ip': p.ip,
+            'license': p.license,
+            'discord': p.discord,
+            'xbl': p.xbl,
+            'live': p.live,
+            'country': p.country,
+            'playtime': p.playtime,
+        })
+    return jsonify({'results': results, 'count': len(results)})
+
 @app.route('/api/sync-bans', methods=['GET'])
 @rate_limit(5, 60)
 def api_sync_bans():
@@ -623,6 +698,16 @@ def server_dashboard(server_id):
         stats=stats, players=players, bans=bans, recent_bans=bans[:10],
         recent_logs=recent_logs, admins=admins, config_groups=config_groups)
 
+CONFIG_GROUP_MAP = {
+    'Components': 'Rilevamento_Cheat',
+    'Protezioni Eventi': 'Protezioni_Eventi',
+    'Limits': 'Limiti_e_Soglie',
+    'BanComponents': 'Ban_Components',
+    'Messages': 'Messaggi',
+    'Webhook': 'Webhook',
+}
+CONFIG_REVERSE_MAP = {v: k for k, v in CONFIG_GROUP_MAP.items()}
+
 def build_config_groups(data):
     groups = {
         'Rilevamento Cheat': {},
@@ -654,16 +739,14 @@ def build_config_groups(data):
 
     for k, v in toggles.items():
         label = label_map.get(k, k)
-        group = 'Limiti e Soglie'
         if k in ('StopUnauthorizedResources', 'ModMenuChecks'):
-            group = 'Protezioni Eventi'
+            groups['Protezioni Eventi'][k] = {'label': label, 'desc': '', 'type': 'toggle', 'value': v, 'config_group': 'Components'}
         else:
-            group = 'Rilevamento Cheat'
-        groups[group][k] = {'label': label, 'desc': '', 'type': 'toggle', 'value': v}
+            groups['Rilevamento Cheat'][k] = {'label': label, 'desc': '', 'type': 'toggle', 'value': v, 'config_group': 'Components'}
 
     for k, v in ban_comps.items():
         label = label_map.get(k, k)
-        groups['Ban Components'][k] = {'label': label, 'desc': 'Auto-ban on detection', 'type': 'toggle', 'value': v}
+        groups['Ban Components'][k] = {'label': label, 'desc': 'Auto-ban on detection', 'type': 'toggle', 'value': v, 'config_group': 'BanComponents'}
 
     limit_labels = {
         'NoClipTriggerCount': 'NoClip Trigger', 'AimbotTriggerCount': 'Aimbot Trigger',
@@ -672,30 +755,27 @@ def build_config_groups(data):
     }
     for k, v in limits.items():
         lbl = limit_labels.get(k, k.replace('TriggerCount', ' Trigger').replace('Limit', ' Limit'))
-        groups['Limiti e Soglie'][k] = {'label': lbl, 'desc': '', 'type': 'number', 'value': v}
+        groups['Limiti e Soglie'][k] = {'label': lbl, 'desc': '', 'type': 'number', 'value': v, 'config_group': 'Limits'}
 
     for k, v in webhook.items():
-        if k == 'Ban' or k == 'JoinURL' or k == 'LeaveURL':
+        if k == 'Ban':
+            continue
+        if isinstance(v, bool):
             continue
         if not isinstance(v, str) or not v.startswith('http'):
             continue
-        groups['Webhook'][k] = {'label': f'Webhook {k}', 'desc': '', 'type': 'text', 'value': v[:60] + '...' if len(v) > 60 else v}
-
-    for k in ('JoinURL', 'LeaveURL'):
-        v = webhook.get(k, '')
-        if v:
-            groups['Webhook'][k] = {'label': f'Webhook {k}', 'desc': '', 'type': 'text', 'value': v[:60] + '...' if len(v) > 60 else v}
+        groups['Webhook'][k] = {'label': k.replace('URL', ' Webhook'), 'desc': '', 'type': 'text', 'value': v, 'config_group': 'Webhook'}
 
     if ban_webhooks:
         for category, url in ban_webhooks.items():
             v = url or ''
-            if v:
-                groups['Webhook'][f'Ban_{category}'] = {'label': f'Ban Webhook ({category})', 'desc': '', 'type': 'text', 'value': v[:50] + '...' if len(v) > 50 else v}
+            if v and isinstance(v, str) and v.startswith('http'):
+                groups['Webhook'][f'Ban_{category}'] = {'label': f'Ban Webhook ({category})', 'desc': '', 'type': 'text', 'value': v, 'config_group': 'Webhook'}
 
-    msg_keys = list(messages.keys())[:8]
+    msg_keys = list(messages.keys())[:12]
     for k in msg_keys:
         v = messages.get(k, '')
-        groups['Messaggi'][k] = {'label': k, 'desc': '', 'type': 'text', 'value': v[:70] + '...' if len(v) > 70 else v}
+        groups['Messaggi'][k] = {'label': k, 'desc': '', 'type': 'text', 'value': v, 'config_group': 'Messages'}
 
     bl_categories = {
         'BlacklistedWeapons': 'Weapons', 'BlacklistedEvents': 'Events',
@@ -703,8 +783,7 @@ def build_config_groups(data):
     }
     for bl_key, bl_label in bl_categories.items():
         items = data.get(bl_key, [])
-        if items:
-            groups['Blacklist'][bl_key] = {'label': f'{bl_label} ({len(items)})', 'desc': f'{len(items)} items', 'type': 'list', 'value': items[:5]}
+        groups['Blacklist'][bl_key] = {'label': f'{bl_label} ({len(items)})', 'desc': f'{len(items)} items', 'type': 'list', 'value': items[:8], 'config_group': bl_key}
 
     return groups
 
@@ -802,6 +881,44 @@ def api_server_config(server_id):
     if request.method == 'POST':
         data = request.get_json()
         if not data: return jsonify({'error': 'No data'}), 400
+        # If data is in frontend group format, convert to proper config keys
+        if 'Rilevamento_Cheat' in data or 'Limiti_e_Soglie' in data:
+            converted = {}
+            # Rilevamento Cheat + Protezioni Eventi → Components
+            components = {}
+            components.update(data.get('Rilevamento_Cheat', {}))
+            components.update(data.get('Protezioni_Eventi', {}))
+            if components: converted['Components'] = components
+            # Limits
+            limits = data.get('Limiti_e_Soglie', {})
+            if limits: converted['Limits'] = limits
+            # BanComponents
+            ban_comps = data.get('Ban_Components', {})
+            if ban_comps: converted['BanComponents'] = ban_comps
+            # Messages
+            messages = data.get('Messaggi', {})
+            if messages: converted['Messages'] = messages
+            # Webhook
+            wh = data.get('Webhook', {})
+            if wh:
+                # Extract Ban_ sub-keys into nested Ban dict
+                webhook_out = {}
+                ban_webhooks = {}
+                for k, v in wh.items():
+                    if k.startswith('Ban_'):
+                        ban_webhooks[k.replace('Ban_', '')] = v
+                    else:
+                        webhook_out[k] = v
+                if ban_webhooks:
+                    webhook_out['Ban'] = ban_webhooks
+                if webhook_out:
+                    converted['Webhook'] = webhook_out
+            # Blacklist items are already keyed by their config key
+            bl = data.get('Blacklist', {})
+            if bl:
+                for k, v in bl.items():
+                    converted[k] = v if isinstance(v, list) else []
+            data = converted
         cfg = ServerConfig.query.filter_by(server_id=server_id).first()
         if not cfg:
             cfg = ServerConfig(server_id=server_id)
@@ -849,13 +966,15 @@ def api_server_console(server_id):
 def api_server_status(server_id):
     srv = ServerInfo.query.filter_by(server_id=server_id).first()
     if not srv:
-        return jsonify({'online': False, 'player_count': 0, 'staff_count': 0, 'uptime': '0h'})
+        return jsonify({'online': False, 'player_count': 0, 'staff_count': 0, 'uptime': '0h', 'total_bans': 0})
+    total_bans = ServerBan.query.filter_by(server_id=server_id).count()
     return jsonify({
         'online': srv.online,
         'server_name': srv.server_name,
         'player_count': srv.player_count,
         'staff_count': srv.staff_count,
         'uptime': srv.uptime,
+        'total_bans': total_bans,
         'last_seen': srv.last_seen.isoformat() if srv.last_seen else None,
     })
 

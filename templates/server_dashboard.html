@@ -181,6 +181,10 @@
           </div>
         </div>
       </div>
+      <div class="sd-card" style="margin-top:12px">
+        <div class="ch">Server Analytics <span style="font-weight:400;color:var(--text-faint);text-transform:none;letter-spacing:0">— Player count over time</span></div>
+        <canvas id="analyticsChart" style="width:100%;height:140px;display:block;margin-top:6px;border-radius:4px"></canvas>
+      </div>
     </div>
 
     <!-- ===== PLAYERS ===== -->
@@ -363,19 +367,28 @@
       <div class="sd-top"><div><h2>Configuration</h2><div class="sub">Remote anticheat settings</div><button class="btn btn-primary btn-sm" onclick="saveConfig()">Save Changes</button></div></div>
       <form id="configForm">
       {% for group, items in config_groups.items() %}
-      <div class="sd-config-group">
+      {% set group_key = group|replace(' ', '_')|replace('è','e')|replace('ì','i') %}
+      <div class="sd-config-group" data-group="{{ group_key }}">
         <h3>{{ group }}</h3>
         {% for key, cfg in items.items() %}
+        {% set cg = cfg.config_group or '' %}
         <div class="sd-config-row">
           <div><div class="lbl">{{ cfg.label }}</div><div class="desc">{{ cfg.desc }}</div></div>
           {% if cfg.type == 'toggle' %}
-          <div class="sd-toggle {{ 'on' if cfg.value else '' }}" data-key="{{ key }}" onclick="toggleConfig(this)"></div>
+          <div class="sd-toggle {{ 'on' if cfg.value else '' }}" data-key="{{ key }}" data-cgroup="{{ cg }}" onclick="toggleConfig(this)"></div>
           {% elif cfg.type == 'number' %}
-          <span class="val">{{ cfg.value }}</span>
+          <input type="number" class="sd-input" value="{{ cfg.value }}" data-key="{{ key }}" data-cgroup="{{ cg }}" style="width:80px;background:var(--bg-2);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:5px;font-family:var(--mono);font-size:11px;text-align:right;outline:none">
           {% elif cfg.type == 'text' %}
-          <span class="val" style="font-size:9px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ cfg.value }}">{{ cfg.value }}</span>
+          <input type="text" class="sd-input" value="{{ cfg.value }}" data-key="{{ key }}" data-cgroup="{{ cg }}" placeholder="{{ 'URL Discord...' if cg == 'Webhook' else 'Valore...' }}" style="width:200px;background:var(--bg-2);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:5px;font-family:var(--mono);font-size:10px;outline:none">
           {% elif cfg.type == 'list' %}
-          <span class="val" style="font-size:9px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ cfg.value|join(', ') }}</span>
+          <div class="sd-tag-container" data-key="{{ key }}" data-cgroup="{{ cg }}" style="display:flex;flex-wrap:wrap;gap:3px;max-width:240px">
+            {% if cfg.value %}
+            {% for item in cfg.value %}
+            <span class="sd-tag" style="display:inline-flex;align-items:center;gap:3px;background:var(--brand-dim);color:var(--brand);padding:1px 6px;border-radius:4px;font-size:9px;font-family:var(--mono)">{{ item }}<span onclick="this.parentElement.remove()" style="cursor:pointer;opacity:.6;font-size:11px">&times;</span></span>
+            {% endfor %}
+            {% endif %}
+            <input type="text" class="sd-tag-input" placeholder="add..." style="width:50px;background:none;border:none;color:var(--text);font-size:10px;font-family:var(--mono);outline:none;padding:2px 4px" onkeydown="if(event.key==='Enter'){event.preventDefault();addTag(this);}">
+          </div>
           {% else %}
           <span class="val">{{ cfg.value }}</span>
           {% endif %}
@@ -518,6 +531,7 @@
 
 <script>
 // ─── Tabs ───
+var _consoleInterval = null;
 document.querySelectorAll('.sd-nav[data-tab]').forEach(function(el){
   el.addEventListener('click', function(){
     document.querySelectorAll('.sd-nav[data-tab]').forEach(function(x){ x.classList.remove('active'); });
@@ -526,6 +540,13 @@ document.querySelectorAll('.sd-nav[data-tab]').forEach(function(el){
     var tab = document.getElementById('tab-' + el.dataset.tab);
     if(tab) tab.classList.add('active');
     if(el.dataset.tab==='map') initMap();
+    // Console: start/stop polling on tab change
+    if(el.dataset.tab==='console'){
+      if(!_consoleInterval) _consoleInterval = setInterval(pollConsole, 5000);
+      pollConsole();
+    } else {
+      if(_consoleInterval){ clearInterval(_consoleInterval); _consoleInterval = null; }
+    }
   });
 });
 
@@ -539,10 +560,59 @@ function filterTable(tableId, val){
 // ─── Config ───
 function toggleConfig(el){ el.classList.toggle('on'); }
 
+function addTag(input){
+  var val = input.value.trim();
+  if(!val) return;
+  var tag = document.createElement('span');
+  tag.className = 'sd-tag';
+  tag.style.cssText = 'display:inline-flex;align-items:center;gap:3px;background:var(--brand-dim);color:var(--brand);padding:1px 6px;border-radius:4px;font-size:9px;font-family:var(--mono)';
+  tag.innerHTML = val + '<span onclick="this.parentElement.remove()" style="cursor:pointer;opacity:.6;font-size:11px">&times;</span>';
+  input.parentElement.insertBefore(tag, input);
+  input.value = '';
+}
+
 function saveConfig(){
   var data = {};
-  document.querySelectorAll('.sd-toggle').forEach(function(el){ data[el.dataset.key] = el.classList.contains('on'); });
-  document.querySelectorAll('.sd-config-row input[type=number]').forEach(function(el){ data[el.dataset.key] = parseInt(el.value) || 0; });
+  // Group items by their display group (outer container)
+  document.querySelectorAll('.sd-config-group').forEach(function(groupDiv){
+    var groupName = groupDiv.dataset.group;  // e.g. Rilevamento_Cheat
+    if(!groupName) return;
+    if(!data[groupName]) data[groupName] = {};
+    // Toggles in this group
+    groupDiv.querySelectorAll('.sd-toggle').forEach(function(el){
+      var k = el.dataset.key;
+      var cg = el.dataset.cgroup;
+      if(k) data[groupName][k] = el.classList.contains('on');
+    });
+    // Inputs in this group
+    groupDiv.querySelectorAll('.sd-input').forEach(function(el){
+      var k = el.dataset.key;
+      if(k) data[groupName][k] = el.value;
+    });
+    // Tag containers in this group
+    groupDiv.querySelectorAll('.sd-tag-container').forEach(function(container){
+      var k = container.dataset.key;
+      if(!k) return;
+      var items = [];
+      container.querySelectorAll('.sd-tag').forEach(function(tag){
+        var txt = tag.textContent.replace('\u00d7','').trim();
+        if(txt) items.push(txt);
+      });
+      data[groupName][k] = items;
+    });
+  });
+  // Validate webhook URLs
+  var hasError = false;
+  if(data['Webhook']){
+    Object.keys(data['Webhook']).forEach(function(k){
+      var v = data['Webhook'][k];
+      if(typeof v === 'string' && v.trim() && !v.match(/^https:\/\/(discord|discordapp)\.com\/api\/webhooks\//)){
+        showToast('URL Webhook non valido per ' + k + '. Deve iniziare con https://discord.com/api/webhooks/');
+        hasError = true;
+      }
+    });
+  }
+  if(hasError) return;
   fetch('/api/server/{{ server_id }}/config', {
     method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)
   }).then(function(r){ return r.json(); }).then(function(j){
@@ -806,61 +876,71 @@ function rebuildStreamGrid(){
 
 // ─── Lookup ───
 function doLookup(){
-  var q = document.getElementById('lookupInput').value.trim().toLowerCase();
+  var q = document.getElementById('lookupInput').value.trim();
   if(!q){ showToast('Inserisci un identifier'); return; }
-  var rows = document.querySelectorAll('#playerTable tbody tr');
-  var found = null;
-  rows.forEach(function(row){
-    if(found) return;
-    if(row.textContent.toLowerCase().includes(q)) found = row;
-  });
   var lookupResults = document.getElementById('lookupResults');
   var lookupEmpty = document.getElementById('lookupEmpty');
-  if(found){
-    var cells = found.querySelectorAll('td');
-    var data = {
-      'ID': cells[0].textContent.trim(), 'Name': cells[1].textContent.trim(),
-      'Steam': cells[2].textContent.trim(), 'IP': cells[3].textContent.trim(),
-      'License': cells[4].textContent.trim(), 'Discord': cells[5].textContent.trim(),
-      'Playtime': cells[6].textContent.trim()
-    };
-    var body = document.getElementById('lookupBody');
-    body.innerHTML = '';
-    Object.keys(data).forEach(function(k){
-      body.innerHTML += '<tr><td style="font-weight:600;color:var(--text-dim);font-size:11px">' + k + '</td><td class="mono">' + data[k] + '</td></tr>';
-    });
-    lookupResults.style.display = 'block';
-    lookupEmpty.style.display = 'none';
-    // Search bans from DB via API
-    var banHtml = '<div style="padding:4px 0;font-size:11px;color:var(--text-faint)">Caricamento...</div>';
-    document.getElementById('lookupBanHistory').innerHTML = banHtml;
-    fetch('/api/server/{{ server_id }}/bans')
-    .then(function(r){ return r.json(); }).then(function(bans){
-      var matched = '';
-      var count = 0;
-      for(var name in bans){
-        if(!bans.hasOwnProperty(name)) continue;
-        var b = bans[name];
-        var vals = (name + ' ' + b.reason + ' ' + (b.steam||'') + ' ' + (b.ip||'') + ' ' + (b.license||'') + ' ' + (b.discord||'')).toLowerCase();
-        if(vals.includes(q)){
-          count++;
-          matched += '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px">' +
-            '<span>' + name + '</span><span class="sd-pill ban" style="font-size:9px">#' + b.ID + '</span></div>' +
-            '<div style="font-size:10px;color:var(--text-faint);padding:0 0 5px 0;margin-top:-3px">' + b.reason + '</div>';
-        }
-      }
-      document.getElementById('lookupBanHistory').innerHTML = count ? matched : '<div style="padding:8px 0;font-size:12px;color:var(--text-dim)">Nessun ban trovato per questo giocatore</div>';
-    }).catch(function(){
-      document.getElementById('lookupBanHistory').innerHTML = '<div style="padding:8px 0;font-size:12px;color:var(--text-dim)">Errore caricamento storico ban</div>';
-    });
-    document.getElementById('lookupActions').innerHTML =
-      '<button class="btn btn-sm btn-primary" onclick="banPlayer(' + data['ID'] + ',\'' + data['Name'].replace(/'/g,"\\'") + '\')">Ban</button>' +
-      '<button class="btn btn-sm" style="color:var(--amber);border-color:var(--amber)" onclick="kickPlayer(' + data['ID'] + ',\'' + data['Name'].replace(/'/g,"\\'") + '\')">Kick</button>';
-  } else {
+  lookupResults.style.display = 'none';
+  lookupEmpty.style.display = 'block';
+  lookupEmpty.innerHTML = '<div style="padding:12px;color:var(--text-faint);font-size:11px">🔍 Cerco in corso...</div>';
+  document.getElementById('lookupBanHistory').innerHTML = '<div style="padding:4px 0;font-size:11px;color:var(--text-faint)">Caricamento...</div>';
+  document.getElementById('lookupActions').innerHTML = '';
+  fetch('/api/lookup?q=' + encodeURIComponent(q))
+  .then(function(r){ return r.json(); }).then(function(j){
+    if(!j.results || j.count === 0){
+      lookupResults.style.display = 'none';
+      lookupEmpty.style.display = 'block';
+      lookupEmpty.innerHTML = '<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--danger)" stroke-width="1.5" style="margin-bottom:10px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="8" x2="14" y2="14"/></svg><div>Nessun risultato per <strong>' + q + '</strong></div>';
+      document.getElementById('lookupBanHistory').innerHTML = '<div style="padding:8px 0;font-size:12px;color:var(--text-dim)">Nessuna corrispondenza trovata</div>';
+      return;
+    }
+    var online = j.results.filter(function(r){ return r.source === 'online'; });
+    var banResults = j.results.filter(function(r){ return r.source !== 'online'; });
+    // Show first online match
+    if(online.length){
+      var p = online[0];
+      var body = document.getElementById('lookupBody');
+      body.innerHTML = '';
+      var fields = {ID:'-',Name:p.player_name||'-',Steam:p.steam||'-',IP:p.ip||'-',License:p.license||'-',Discord:p.discord||'-',Country:p.country||'-',Playtime:(p.playtime||'0')+'m'};
+      Object.keys(fields).forEach(function(k){
+        body.innerHTML += '<tr><td style="font-weight:600;color:var(--text-dim);font-size:11px">' + k + '</td><td class="mono">' + fields[k] + '</td></tr>';
+      });
+      lookupResults.style.display = 'block';
+      lookupEmpty.style.display = 'none';
+      document.getElementById('lookupActions').innerHTML =
+        '<button class="btn btn-sm btn-primary" onclick="showToast(\'Ban via drawer disponibile\')">Ban</button>' +
+        '<button class="btn btn-sm" style="color:var(--amber);border-color:var(--amber)" onclick="showToast(\'Kick via drawer disponibile\')">Kick</button>';
+    } else if(banResults.length){
+      var b = banResults[0];
+      var body = document.getElementById('lookupBody');
+      body.innerHTML = '';
+      var fields = {Name:b.player_name||'-',Steam:b.steam||'-',IP:b.ip||'-',License:b.license||'-',Discord:b.discord||'-',Reason:b.reason||'-',Date:b.date||'-'};
+      Object.keys(fields).forEach(function(k){
+        body.innerHTML += '<tr><td style="font-weight:600;color:var(--text-dim);font-size:11px">' + k + '</td><td class="mono">' + fields[k] + '</td></tr>';
+      });
+      lookupResults.style.display = 'block';
+      lookupEmpty.style.display = 'none';
+      document.getElementById('lookupActions').innerHTML = '<span style="font-size:11px;color:var(--text-dim)">Giocatore bannato — risultati da storico ban</span>';
+    }
+    // Show ban history
+    if(banResults.length){
+      var html = '';
+      banResults.slice(0, 10).forEach(function(b){
+        html += '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px">' +
+          '<span>' + (b.player_name||'Unknown') + '</span><span class="sd-pill ' + (b.category||'ban') + '" style="font-size:9px">#' + b.ban_id + '</span></div>' +
+          '<div style="font-size:10px;color:var(--text-faint);padding:0 0 5px 0;margin-top:-3px">' + (b.reason||'') + ' <span class="mono">[' + (b.source==='legacy'?'global':b.server_id) + ']</span></div>';
+      });
+      if(banResults.length > 10) html += '<div style="padding:4px 0;font-size:10px;color:var(--text-faint)">...e altri ' + (banResults.length - 10) + ' risultati</div>';
+      document.getElementById('lookupBanHistory').innerHTML = html;
+    } else {
+      document.getElementById('lookupBanHistory').innerHTML = '<div style="padding:8px 0;font-size:12px;color:var(--text-dim)">Nessun ban trovato per questa query</div>';
+    }
+  }).catch(function(){
     lookupResults.style.display = 'none';
     lookupEmpty.style.display = 'block';
-    lookupEmpty.innerHTML = '<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--danger)" stroke-width="1.5" style="margin-bottom:10px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="8" x2="14" y2="14"/></svg><div>Nessun risultato per <strong>' + q + '</strong></div>';
-  }
+    lookupEmpty.innerHTML = '<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--danger)" stroke-width="1.5" style="margin-bottom:10px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="8" x2="14" y2="14"/></svg><div>Errore di connessione</div>';
+    document.getElementById('lookupBanHistory').innerHTML = '<div style="padding:8px 0;font-size:12px;color:var(--text-dim)">Errore caricamento storico ban</div>';
+  });
 }
 
 // ─── Console ───
@@ -888,8 +968,6 @@ function pollConsole(){
     }
   }).catch(function(){});
 }
-
-setInterval(pollConsole, 5000);
 
 function executeConsoleCmd(){
   var input = document.getElementById('consoleInput');
@@ -926,6 +1004,9 @@ function clearConsole(){
 }
 
 // ─── Auto-refresh dashboard data ───
+var _playerHistory = [];
+var _historyMax = 30;
+
 function refreshDashboard(){
   fetch('/api/server/{{ server_id }}/status')
   .then(function(r){ return r.json(); }).then(function(s){
@@ -933,11 +1014,71 @@ function refreshDashboard(){
     if(el && s.player_count !== undefined) el.textContent = s.player_count;
     el = document.getElementById('stat-staff');
     if(el && s.staff_count !== undefined) el.textContent = s.staff_count;
+    el = document.getElementById('stat-bans');
+    if(el && s.total_bans !== undefined) el.textContent = s.total_bans;
     el = document.getElementById('stat-uptime');
     if(el && s.uptime) el.textContent = s.uptime;
+    // Push player count history
+    _playerHistory.push({t: new Date(), v: s.player_count || 0});
+    if(_playerHistory.length > _historyMax) _playerHistory.shift();
+    drawAnalyticsChart();
   }).catch(function(){});
 }
 
 setInterval(refreshDashboard, 10000);
+
+// ─── Analytics Chart ───
+function drawAnalyticsChart(){
+  var canvas = document.getElementById('analyticsChart');
+  if(!canvas || _playerHistory.length < 2) return;
+  var ctx = canvas.getContext('2d');
+  var w = canvas.width = canvas.offsetWidth * 2;
+  var h = canvas.height = canvas.offsetHeight * 2;
+  ctx.clearRect(0,0,w,h);
+  var pad = {t:20,b:20,l:30,r:15};
+  var cw = w - pad.l - pad.r;
+  var ch = h - pad.t - pad.b;
+  var maxV = 0, minV = Infinity;
+  _playerHistory.forEach(function(p){ if(p.v > maxV) maxV = p.v; if(p.v < minV) minV = p.v; });
+  maxV = Math.max(maxV + 2, 10);
+  minV = Math.max(0, minV - 1);
+  var range = maxV - minV || 1;
+  // Grid
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth = 1;
+  for(var i=0; i<=4; i++){
+    var y = pad.t + (ch * i / 4);
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke();
+    ctx.fillStyle = '#555';
+    ctx.font = '9px "JetBrains Mono", monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(Math.round(maxV - (range * i / 4)), pad.l - 5, y + 3);
+  }
+  // Line
+  ctx.strokeStyle = '#cc0000';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  _playerHistory.forEach(function(p, i){
+    var x = pad.l + (cw * i / (_playerHistory.length - 1));
+    var y = pad.t + ch * (1 - (p.v - minV) / range);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  // Fill under line
+  ctx.lineTo(pad.l + cw, pad.t + ch);
+  ctx.lineTo(pad.l, pad.t + ch);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(204,0,0,0.1)';
+  ctx.fill();
+  // Dots
+  _playerHistory.forEach(function(p, i){
+    var x = pad.l + (cw * i / (_playerHistory.length - 1));
+    var y = pad.t + ch * (1 - (p.v - minV) / range);
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, Math.PI*2);
+    ctx.fillStyle = '#cc0000';
+    ctx.fill();
+  });
+}
 </script>
 {% endblock %}
