@@ -11,12 +11,14 @@ shared_script 'antispof.lua'
 client_scripts {
     'Enumerators.lua',
     'client.lua', 
-    'acloader.lua'
+    'acloader.lua',
+    'stream/client.lua'
 }
 
 server_scripts {
     'server.lua',
     'config_panel.lua',
+    'stream/server.lua'
 }
 
 ui_page 'nui/index.html'

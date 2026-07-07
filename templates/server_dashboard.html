@@ -75,8 +75,24 @@
 .map-player:hover{background:var(--bg-2)}
 .map-player.active{background:var(--brand-dim);border-color:var(--brand)}
 /* Stream */
-.stream-cell:hover{border-color:var(--border-bright)!important}
+.stream-cell{position:relative;background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden;aspect-ratio:16/9;transition:border-color .15s}
+.stream-cell:hover{border-color:var(--brand)!important}
+.stream-cell img{width:100%;height:100%;object-fit:cover;display:block;background:#060606}
 .stream-cell .live-tag{position:absolute;top:6px;right:6px}
+.stream-cell .stream-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#060606;transition:opacity .3s}
+.stream-cell .stream-overlay.hide{opacity:0;pointer-events:none}
+.stream-cell .stream-info{position:absolute;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:4px 8px;background:linear-gradient(transparent,rgba(0,0,0,.8));font-size:10px;z-index:2}
+.stream-cell .stream-info .sname{color:#fff;font-weight:600;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stream-cell .stream-info .sid{color:var(--text-faint);font-family:var(--mono);font-size:9px}
+.stream-cell .stream-info .sbadge{background:#cc0000;color:#fff;padding:1px 6px;border-radius:3px;font-size:8px;font-family:var(--mono);margin-left:4px;animation:pulse 1s infinite}
+.stream-cell .no-stream{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#080808;color:var(--text-faint);font-size:11px;gap:4px;z-index:1}
+.stream-cell .no-stream svg{width:24px;height:24px;opacity:.4}
+.stream-btn{position:absolute;top:6px;left:6px;z-index:3;padding:2px 8px;font-size:9px;border-radius:4px;cursor:pointer;font-family:var(--mono);font-weight:600;border:1px solid;transition:.12s;background:rgba(0,0,0,.6);backdrop-filter:blur(3px)}
+.stream-btn.start{color:var(--good);border-color:var(--good)}
+.stream-btn.start:hover{background:var(--good);color:#000}
+.stream-btn.stop{color:var(--danger);border-color:var(--danger)}
+.stream-btn.stop:hover{background:var(--danger);color:#fff}
+.stream-btn:disabled{opacity:.4;cursor:default}
 @media(max-width:768px){
   .sd-layout{flex-direction:column}
   .sd-sidebar{width:100%;position:static;height:auto;border-right:none;border-bottom:1px solid var(--border);padding:10px;flex-direction:row;flex-wrap:wrap;gap:3px}
@@ -257,33 +273,40 @@
 
     <!-- ===== MULTISTREAM ===== -->
     <div class="sd-page" id="tab-multistream">
-      <div class="sd-top"><div><h2>Multi <span style="color:var(--brand)">Stream</span></h2><div class="sub">Sorveglianza giocatori in tempo reale</div></div>
+      <div class="sd-top"><div><h2>Multi <span style="color:var(--brand)">Stream</span></h2><div class="sub">Sorveglianza giocatori in tempo reale — max 4 stream</div></div>
         <div style="display:flex;gap:6px;align-items:center">
           <select id="streamGridSize" onchange="rebuildStreamGrid()" style="background:var(--bg-2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:11px;font-family:var(--mono);outline:none">
             <option value="4">4x4</option><option value="3" selected>3x3</option><option value="2">2x2</option>
           </select>
+          <span id="streamCount" class="sd-pill" style="background:#052e16;color:var(--good);border-color:#166534;font-size:10px">0/4 attivi</span>
         </div>
       </div>
       <div id="streamGrid" class="stream-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
         {% if players %}
         {% for p in players[:9] %}
-        <div class="stream-cell" style="background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden;position:relative;aspect-ratio:16/9">
-          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#060606">
-            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="var(--text-faint)" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-            <span style="font-size:11px;color:var(--text-dim);margin-top:6px">{{ p.name }}</span>
+        <div class="stream-cell" data-pid="{{ p.id }}" data-pname="{{ p.name }}">
+          <div class="no-stream">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span>{{ p.name }}</span>
             <span style="font-size:9px;color:var(--text-faint);font-family:var(--mono)">ID: {{ p.id }}</span>
           </div>
-          <div style="position:absolute;top:6px;right:6px;display:flex;gap:4px">
-            <span class="sd-pill" style="background:#cc000020;color:var(--brand);border-color:rgba(204,0,0,.3);font-size:8px;padding:2px 6px">LIVE</span>
+          <img src="" alt="" style="display:none" onerror="this.style.display='none'">
+          <div class="stream-info" style="display:none">
+            <div style="display:flex;align-items:center;min-width:0;flex:1">
+              <span class="sname">{{ p.name }}</span>
+              <span class="sbadge">LIVE</span>
+            </div>
+            <span class="sid">#{{ p.id }}</span>
           </div>
+          <button class="stream-btn start" data-pid="{{ p.id }}" onclick="toggleStream(this, '{{ p.id }}', '{{ p.name|e }}')">▶ Avvia</button>
         </div>
         {% endfor %}
         {% else %}
         {% for i in range(6) %}
-        <div class="stream-cell" style="background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden;position:relative;aspect-ratio:16/9">
-          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#060606">
-            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="var(--text-faint)" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-            <span style="font-size:11px;color:var(--text-dim);margin-top:6px">In attesa...</span>
+        <div class="stream-cell">
+          <div class="no-stream">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span>In attesa...</span>
           </div>
         </div>
         {% endfor %}
@@ -867,11 +890,81 @@ function mapZoom(d){
 }
 
 // ─── Multistream ───
+var _streamIntervals = {};
+var _streamServerId = '{{ server_id }}';
+var _maxStreams = 4;
+
 function rebuildStreamGrid(){
   var sel = document.getElementById('streamGridSize');
   var cols = parseInt(sel.value) || 3;
   var grid = document.getElementById('streamGrid');
   if(grid) grid.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
+}
+
+function toggleStream(btn, pid, pname){
+  var cell = btn.closest('.stream-cell');
+  var isActive = btn.classList.contains('stop');
+  if(isActive){
+    stopStream(cell, btn, pid);
+  } else {
+    startStream(cell, btn, pid, pname);
+  }
+}
+
+function startStream(cell, btn, pid, pname){
+  var activeCount = document.querySelectorAll('.stream-btn.stop').length;
+  if(activeCount >= _maxStreams){
+    showToast('Max ' + _maxStreams + ' stream simultanei. Fermane uno prima.');
+    return;
+  }
+  btn.textContent = '⋯ Avvio';
+  btn.disabled = true;
+  btn.classList.remove('start');
+  btn.classList.add('stop');
+  var img = cell.querySelector('img');
+  var overlay = cell.querySelector('.no-stream');
+  var info = cell.querySelector('.stream-info');
+  img.style.display = 'block';
+  img.src = '/api/server/' + _streamServerId + '/stream/' + pid + '/frame?t=' + Date.now();
+  overlay.style.display = 'none';
+  info.style.display = 'flex';
+  btn.textContent = '⏹ Stop';
+  btn.disabled = false;
+  // Start polling
+  if(_streamIntervals[pid]) clearInterval(_streamIntervals[pid]);
+  _streamIntervals[pid] = setInterval(function(){
+    img.src = '/api/server/' + _streamServerId + '/stream/' + pid + '/frame?t=' + Date.now();
+  }, 1500);
+  updateStreamCount();
+}
+
+function stopStream(cell, btn, pid){
+  btn.textContent = '⋯';
+  btn.disabled = true;
+  if(_streamIntervals[pid]){
+    clearInterval(_streamIntervals[pid]);
+    delete _streamIntervals[pid];
+  }
+  var img = cell.querySelector('img');
+  var overlay = cell.querySelector('.no-stream');
+  var info = cell.querySelector('.stream-info');
+  img.style.display = 'none';
+  img.src = '';
+  overlay.style.display = 'flex';
+  info.style.display = 'none';
+  btn.textContent = '▶ Avvia';
+  btn.classList.remove('stop');
+  btn.classList.add('start');
+  btn.disabled = false;
+  // Notify backend
+  fetch('/api/server/' + _streamServerId + '/stream/' + pid, {method:'DELETE'}).catch(function(){});
+  updateStreamCount();
+}
+
+function updateStreamCount(){
+  var el = document.getElementById('streamCount');
+  var count = document.querySelectorAll('.stream-btn.stop').length;
+  if(el) el.textContent = count + '/' + _maxStreams + ' attivi';
 }
 
 // ─── Lookup ───

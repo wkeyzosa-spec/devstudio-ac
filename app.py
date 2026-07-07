@@ -1,4 +1,4 @@
-import os, json, uuid, hashlib, hmac, io, zipfile, subprocess, sys, time
+import os, json, uuid, hashlib, hmac, io, zipfile, subprocess, sys, time, base64
 from datetime import datetime, timedelta
 from functools import wraps
 
@@ -1042,6 +1042,60 @@ def api_sync_admins(server_id):
         db.session.add(sa)
     db.session.commit()
     return jsonify({'success': True, 'count': len(data)})
+
+# ---------- MULTISTREAM ----------
+STREAM_FRAMES = {}
+MAX_STREAM_AGE = 30
+
+@app.route('/api/server/<server_id>/stream/<player_id>', methods=['POST'])
+@rate_limit(120, 60)
+def api_stream_frame(server_id, player_id):
+    data = request.get_json()
+    if not data or 'frame' not in data:
+        return jsonify({'error': 'No frame data'}), 400
+    try:
+        raw = base64.b64decode(data['frame'])
+    except Exception:
+        return jsonify({'error': 'Invalid base64'}), 400
+    if server_id not in STREAM_FRAMES:
+        STREAM_FRAMES[server_id] = {}
+    STREAM_FRAMES[server_id][player_id] = {'frame': raw, 'timestamp': time.time()}
+    now = time.time()
+    for sid in list(STREAM_FRAMES.keys()):
+        for pid in list(STREAM_FRAMES[sid].keys()):
+            if now - STREAM_FRAMES[sid][pid]['timestamp'] > MAX_STREAM_AGE:
+                del STREAM_FRAMES[sid][pid]
+        if not STREAM_FRAMES[sid]:
+            del STREAM_FRAMES[sid]
+    return jsonify({'success': True})
+
+@app.route('/api/server/<server_id>/stream/<player_id>/frame', methods=['GET'])
+@rate_limit(60, 60)
+def api_get_stream_frame(server_id, player_id):
+    frames = STREAM_FRAMES.get(server_id, {})
+    entry = frames.get(player_id)
+    if not entry:
+        return jsonify({'error': 'No stream'}), 404
+    return send_file(
+        io.BytesIO(entry['frame']),
+        mimetype='image/webp',
+        max_age=0
+    )
+
+@app.route('/api/server/<server_id>/stream/<player_id>', methods=['DELETE'])
+@rate_limit(30, 60)
+def api_stop_stream(server_id, player_id):
+    frames = STREAM_FRAMES.get(server_id, {})
+    frames.pop(player_id, None)
+    return jsonify({'success': True})
+
+@app.route('/api/server/<server_id>/stream/active', methods=['GET'])
+@rate_limit(30, 60)
+def api_active_streams(server_id):
+    frames = STREAM_FRAMES.get(server_id, {})
+    now = time.time()
+    active = [{'player_id': pid, 'last_seen': entry['timestamp']} for pid, entry in frames.items() if now - entry['timestamp'] <= MAX_STREAM_AGE]
+    return jsonify({'active': active})
 
 def regen_licenses_json():
     active = License.query.filter_by(status='active').all()

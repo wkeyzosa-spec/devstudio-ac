@@ -18,6 +18,7 @@ Config = {
     -- The unique server identifier that matches your license on devstudio-ac-1.onrender.com
     ServerID = "auto", -- "auto" uses license key hash; set manually to match your dashboard URL
     LicenseKey = "DSAC-81C17-AAC56-FE4BA-08430",
+    BackendUrl = "https://devstudio-ac-1.onrender.com", -- Multistream backend URL
     LicenseOwner = "",
     Webhook = {
         JoinURL = "https://discordapp.com/api/webhooks/1523809831369183343/OG6pXzESFsdEEWczcZPrVp72qHjIXXj_-o3_O-K4QRvVUv2Q80TYTCLrbE04FxEhpjOo",
