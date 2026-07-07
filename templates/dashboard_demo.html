@@ -2,70 +2,99 @@
 {% block title %}Demo Dashboard · DEV STUDIO AC{% endblock %}
 {% block head %}
 <style>
-:root{--sd-sidebar-w:220px}
-.sd-layout{display:flex;min-height:calc(100vh - var(--nav-h));background:var(--bg-2)}
-.sd-sidebar{width:var(--sd-sidebar-w);background:var(--panel);border-right:1px solid var(--border);
-  padding:14px 10px;display:flex;flex-direction:column;gap:2px;position:sticky;top:var(--nav-h);height:calc(100vh - var(--nav-h));overflow-y:auto}
-.sd-sinfo{display:flex;align-items:center;gap:10px;padding:6px 10px 14px;border-bottom:1px solid var(--border);margin-bottom:8px}
-.sd-sinfo .dot{width:8px;height:8px;border-radius:50%;flex:none}
-.sd-sinfo .dot.online{background:var(--good);box-shadow:0 0 8px var(--good)}
-.sd-sinfo b{font-size:13px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sd-sinfo small{color:var(--text-dim);font-size:10px;font-family:var(--mono)}
-.sd-nav{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:7px;color:var(--text-dim);
-  cursor:pointer;font-size:13px;transition:.1s;border:1px solid transparent}
-.sd-nav:hover{background:var(--bg-2);color:var(--text)}
-.sd-nav.active{background:var(--brand-dim);color:#fff;border-color:rgba(204,0,0,.3)}
-.sd-nav .ico{width:15px;height:15px;flex:none;opacity:.7}
-.sd-nav.active .ico{opacity:1}
-.sd-spacer{flex:1;min-height:10px}
-.sd-main{flex:1;padding:20px 24px;overflow-y:auto;max-height:calc(100vh - var(--nav-h))}
-.sd-page{display:none;animation:fadeIn .2s ease}
+:root{--sd-w:220px}
+.sd-wrap{display:flex;min-height:calc(100vh - var(--nav-h));background:var(--bg-2)}
+.sd-aside{width:var(--sd-w);background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:var(--nav-h);height:calc(100vh - var(--nav-h));overflow:hidden}
+.sd-srv{padding:14px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sd-srv .dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--good);box-shadow:0 0 8px var(--good)}
+.sd-srv b{font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sd-srv small{color:var(--text-dim);font-size:10px;font-family:var(--mono)}
+.sd-nav{padding:6px 8px;flex:1;overflow-y:auto}
+.sd-nav a{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;color:var(--text-dim);font-size:12px;text-decoration:none;transition:.1s;margin-bottom:1px}
+.sd-nav a:hover{background:var(--bg-2);color:var(--text)}
+.sd-nav a.active{background:var(--brand-dim);color:#fff}
+.sd-nav a .ico{width:15px;height:15px;flex:none;opacity:.7}
+.sd-nav a.active .ico{opacity:1}
+.sd-nav .spacer{flex:1;min-height:6px}
+.sd-foot{padding:8px 12px;border-top:1px solid var(--border);font-size:10px;color:var(--text-faint);display:flex;align-items:center;gap:6px}
+.sd-foot .dot{width:5px;height:5px;border-radius:50%;flex:none;background:var(--good)}
+.sd-body{flex:1;padding:20px 24px;overflow-y:auto;max-height:calc(100vh - var(--nav-h))}
+.sd-page{display:none;animation:fadeIn .15s ease}
 .sd-page.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .sd-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
-.sd-top h2{font-size:19px}
-.sd-top .sub{color:var(--text-dim);font-size:12px}
-.sd-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
-.sd-card{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:14px 16px}
-.sd-card .ch{display:flex;align-items:center;gap:6px;color:var(--text-dim);font-size:10px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
-.sd-card .big{font-size:22px;font-weight:800}
-.sd-card .sub{color:var(--text-dim);font-size:11px;margin-top:2px}
-.sd-table-wrap{background:var(--panel);border:1px solid var(--border);border-radius:9px;overflow:hidden;margin-bottom:14px}
-.sd-table{width:100%;border-collapse:collapse;font-size:12px}
-.sd-table th{text-align:left;font-family:var(--mono);font-size:10px;color:var(--text-faint);
-  letter-spacing:.08em;padding:9px 12px;border-bottom:1px solid var(--border-bright);text-transform:uppercase}
-.sd-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
-.sd-table tr:hover td{background:var(--bg-2)}
-.sd-table .mono{font-family:var(--mono);font-size:11px;color:var(--text-faint)}
-.sd-empty{text-align:center;color:var(--text-dim);padding:30px 0;font-size:13px}
-.sd-toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
-.sd-search{flex:1;min-width:160px;display:flex;align-items:center;gap:7px;background:var(--bg-2);
-  border:1px solid var(--border);border-radius:7px;padding:7px 11px}
-.sd-search input{flex:1;background:none;border:none;color:var(--text);font-size:12px;outline:none;font-family:var(--sans)}
-.sd-search svg{width:13px;height:13px;color:var(--text-dim);flex:none}
-.sd-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:14px;font-size:10px;font-weight:600;font-family:var(--mono)}
-.sd-pill.ban{background:#2d0a0a;color:var(--danger);border:1px solid #7f1d1d}
-.sd-pill.kick{background:#2d1f0a;color:var(--amber);border:1px solid #7f5d1d}
-.sd-pill.warn{background:#0a1a2d;color:#60a5fa;border:1px solid #1d3d7f}
-.sd-config-group{margin-bottom:16px}
-.sd-config-group h3{font-size:13px;color:var(--text-dim);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
-.sd-config-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;
-  background:var(--panel);border:1px solid var(--border);border-radius:7px;margin-bottom:5px}
-.sd-config-row .lbl{font-size:12px}
-.sd-config-row .desc{font-size:10px;color:var(--text-dim);margin-top:1px}
-.sd-config-row .val{font-family:var(--mono);font-size:11px;color:var(--brand);background:var(--brand-dim);padding:3px 8px;border-radius:5px}
+.sd-top h2{font-size:17px}
+.sd-top .sub{color:var(--text-dim);font-size:11px}
+.sd-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.sd-stat{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:12px}
+.sd-stat .ic{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;font-size:16px;flex:none}
+.sd-stat .ic.g{background:#0f2e1a;color:var(--good)}
+.sd-stat .ic.r{background:#2d0a0a;color:var(--danger)}
+.sd-stat .ic.b{background:#0a1a2d;color:#60a5fa}
+.sd-stat .n{font-size:18px;font-weight:800;line-height:1.2}
+.sd-stat .l{font-size:10px;color:var(--text-dim)}
+.sd-tbl{background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px}
+.sd-tbl table{width:100%;border-collapse:collapse;font-size:12px}
+.sd-tbl th{text-align:left;font-family:var(--mono);font-size:9px;color:var(--text-faint);letter-spacing:.08em;padding:8px 12px;border-bottom:1px solid var(--border-bright);text-transform:uppercase;background:var(--panel);position:sticky;top:0}
+.sd-tbl td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.sd-tbl tr:last-child td{border-bottom:none}
+.sd-tbl tr:hover td{background:var(--bg-2)}
+.sd-tbl tr{cursor:pointer}
+.sd-tbl .mono{font-family:var(--mono);font-size:10px;color:var(--text-faint)}
+.sd-tbl .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:10px;font-size:9px;font-weight:600;font-family:var(--mono)}
+.sd-tbl .badge.ban{background:#2d0a0a;color:var(--danger);border:1px solid #7f1d1d}
+.sd-tbl .badge.kick{background:#2d1f0a;color:var(--amber);border:1px solid #7f5d1d}
+.sd-tbl .badge.warn,.sd-tbl .badge.flag{background:#0a1a2d;color:#60a5fa;border:1px solid #1d3d7f}
+.sd-empty{text-align:center;color:var(--text-dim);padding:24px 0;font-size:12px}
+.sd-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.sd-bar .srch{flex:1;min-width:140px;display:flex;align-items:center;gap:6px;background:var(--bg-2);border:1px solid var(--border);border-radius:6px;padding:6px 10px}
+.sd-bar .srch input{flex:1;background:none;border:none;color:var(--text);font-size:12px;outline:none;font-family:var(--sans)}
+.sd-bar .srch svg{width:12px;height:12px;color:var(--text-dim);flex:none}
+.sd-tog{position:relative;width:34px;height:18px;background:var(--border-bright);border-radius:9px;cursor:pointer;transition:.15s;flex:none}
+.sd-tog.on{background:var(--brand)}
+.sd-tog::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:.15s}
+.sd-tog.on::after{left:18px}
+.sd-grp{margin-bottom:14px}
+.sd-grp h3{font-size:12px;color:var(--text-dim);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border);font-weight:600}
+.sd-row{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:var(--panel);border:1px solid var(--border);border-radius:6px;margin-bottom:4px}
+.sd-row .lb{font-size:12px}
+.sd-row .ds{font-size:10px;color:var(--text-dim);margin-top:1px}
+.sd-row .vl{font-family:var(--mono);font-size:11px;color:var(--brand);background:var(--brand-dim);padding:2px 7px;border-radius:4px}
 
-.sd-toggle{position:relative;width:36px;height:20px;background:var(--border-bright);border-radius:10px;cursor:pointer;transition:.15s;flex:none}
-.sd-toggle.on{background:var(--brand)}
-.sd-toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s}
-.sd-toggle.on::after{left:18px}
+/* Slide-in player panel */
+.sd-overlay{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.5);backdrop-filter:blur(2px);opacity:0;visibility:hidden;transition:.2s}
+.sd-overlay.open{opacity:1;visibility:visible}
+.sd-panel{position:fixed;top:0;right:-420px;width:400px;height:100%;z-index:9999;background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;transition:.25s cubic-bezier(.4,0,.2,1)}
+.sd-panel.open{right:0}
+.sd-phead{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border)}
+.sd-phead h3{font-size:15px}
+.sd-phead button{background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;padding:4px}
+.sd-phead button:hover{color:var(--text)}
+.sd-pbody{flex:1;overflow-y:auto;padding:16px 18px}
+.sd-pinfo{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;font-size:12px}
+.sd-pinfo div span:first-child{color:var(--text-dim);font-size:10px;display:block;margin-bottom:1px}
+.sd-pinfo .mono{font-size:11px;word-break:break-all;font-family:var(--mono)}
+.sd-pacts{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sd-pacts button{padding:9px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:none;transition:.1s;text-align:center}
+.sd-pacts button:active{transform:scale(.97)}
+.sd-pacts .b-ban{background:var(--danger);color:#fff}
+.sd-pacts .b-ban:hover{filter:brightness(1.15)}
+.sd-pacts .b-kick{background:var(--amber);color:#000}
+.sd-pacts .b-kick:hover{filter:brightness(1.1)}
+.sd-pacts .b-warn{background:#3b82f6;color:#fff}
+.sd-pacts .b-spectate{background:var(--text-dim);color:#fff}
+.sd-pacts .b-wipe{background:#7c3aed;color:#fff}
+.sd-pmsg{margin-top:12px;font-size:11px;text-align:center;color:var(--text-dim)}
+
 @media(max-width:768px){
-  .sd-layout{flex-direction:column}
-  .sd-sidebar{width:100%;position:static;height:auto;border-right:none;border-bottom:1px solid var(--border);padding:10px;flex-direction:row;flex-wrap:wrap;gap:3px}
-  .sd-sinfo{display:none}
-  .sd-nav{font-size:12px;padding:5px 9px}
-  .sd-main{padding:12px}
-  .sd-stats{grid-template-columns:repeat(2,1fr)}
+  .sd-wrap{flex-direction:column}
+  .sd-aside{width:100%;position:static;height:auto;border-right:none;border-bottom:1px solid var(--border);flex-direction:row;flex-wrap:wrap;padding:6px}
+  .sd-srv{display:none}
+  .sd-nav{display:flex;gap:2px;padding:0;overflow-x:auto}
+  .sd-nav a{white-space:nowrap;font-size:11px;padding:5px 8px}
+  .sd-foot{display:none}
+  .sd-body{padding:12px}
+  .sd-panel{width:100%;right:-100%}
 }
 </style>
 {% endblock %}
@@ -83,14 +112,11 @@
 ] %}
 
 {% set demo_bans = [
-  {'ban_id':1247,'player_name':'xX_H4cker_Xx','reason':'Mod menu injection detected (RedEngine)','category':'ban','steam':'steam:110000deadbeef','ip':'45.33.22.11','banned_at':'2026-07-06'},
-  {'ban_id':1246,'player_name':'SpeedDemon99','reason':'Teleport exploit flagged (coordinate jump >5000)','category':'ban','steam':'steam:110000cafebabe','ip':'89.12.45.67','banned_at':'2026-07-06'},
+  {'ban_id':1247,'player_name':'xX_H4cker_Xx','reason':'Mod menu injection rilevato (RedEngine)','category':'ban','steam':'steam:110000deadbeef','ip':'45.33.22.11','banned_at':'2026-07-06'},
+  {'ban_id':1246,'player_name':'SpeedDemon99','reason':'Teleport exploit flaggato (coordinate jump >5000)','category':'ban','steam':'steam:110000cafebabe','ip':'89.12.45.67','banned_at':'2026-07-06'},
   {'ban_id':1245,'player_name':'GodMode_On','reason':'Health modification detected (godmode)','category':'kick','steam':'steam:110000baadf00d','ip':'192.168.2.88','banned_at':'2026-07-05'},
   {'ban_id':1244,'player_name':'FlyHigh420','reason':'Unauthorized entity spawn (vehicle)','category':'kick','steam':'steam:110000d15ea5e','ip':'77.88.99.12','banned_at':'2026-07-05'},
   {'ban_id':1243,'player_name':'AimbotKing','reason':'Silent aim detected (pitch/yaw anomalies)','category':'ban','steam':'steam:1100005ca1ab1e','ip':'203.45.67.89','banned_at':'2026-07-04'},
-  {'ban_id':1242,'player_name':'NoClipMaster','reason':'Noclip violation (trigger count exceeded)','category':'ban','steam':'steam:110000deadc0de','ip':'156.34.22.11','banned_at':'2026-07-04'},
-  {'ban_id':1241,'player_name':'WallHack_Pro','reason':'ESP/thermal vision detection flagged','category':'warn','steam':'steam:110000f00dcafe','ip':'12.34.56.78','banned_at':'2026-07-03'},
-  {'ban_id':1240,'player_name':'TriggerBot_99','reason':'Triggerbot pattern detected (100% accuracy)','category':'ban','steam':'steam:110000bee5bee5','ip':'67.89.12.34','banned_at':'2026-07-03'},
 ] %}
 
 {% set demo_logs = [
@@ -98,83 +124,60 @@
   {'player_name':'SpeedDemon99','action':'kick','reason':'Teleport exploit','time':'22:13:58','detections':2},
   {'player_name':'NoClipMaster','action':'flag','reason':'Noclip tentativo','time':'22:13:52','detections':1},
   {'player_name':'AimbotKing','action':'ban','reason':'Silent aim confirmato','time':'22:13:44','detections':4},
-  {'player_name':'GodMode_On','action':'kick','reason':'Godmode rilevato','time':'22:13:38','detections':2},
-  {'player_name':'FlyHigh420','action':'flag','reason':'Spawn veicolo','time':'22:13:31','detections':1},
-  {'player_name':'WallHack_Pro','action':'ban','reason':'ESP detection','time':'22:13:25','detections':3},
-  {'player_name':'TriggerBot_99','action':'flag','reason':'Triggerbot anomalo','time':'22:13:19','detections':2},
 ] %}
 
 {% set demo_admins = [
   {'id':1,'name':'DevStudioOwner','ace':'devstudio.superadmin','online':true},
   {'id':2,'name':'CapoStaff','ace':'devstudio.admin','online':true},
   {'id':3,'name':'Moderatore1','ace':'devstudio.mod','online':true},
-  {'id':4,'name':'Moderatore2','ace':'devstudio.mod','online':false},
-  {'id':5,'name':'TrialMod','ace':'devstudio.trial','online':true},
 ] %}
 
-<div class="sd-layout">
-  <aside class="sd-sidebar">
-    <div class="sd-sinfo">
-      <div class="dot online"></div>
+<div class="sd-wrap">
+  <aside class="sd-aside">
+    <div class="sd-srv">
+      <div class="dot"></div>
       <div><b>DEV STUDIO AC</b><small>Online · 64 players</small></div>
     </div>
-    <div class="sd-nav active" data-tab="dashboard">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
-    </div>
-    <div class="sd-nav" data-tab="players">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Players
-    </div>
-    <div class="sd-nav" data-tab="bans">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Bans
-    </div>
-    <div class="sd-nav" data-tab="config">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Config
-    </div>
-    <div class="sd-nav" data-tab="logs">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Logs
-    </div>
-    <div class="sd-nav" data-tab="admins">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Admins
-    </div>
-    <div class="sd-spacer"></div>
-    <div style="padding:10px;border-top:1px solid var(--border);margin-top:6px">
-      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-faint)">
-        <span style="width:6px;height:6px;border-radius:50%;background:var(--good);box-shadow:0 0 6px var(--good)"></span>
-        Demo · Server live
-      </div>
-    </div>
+    <nav class="sd-nav">
+      <a class="active" data-tab="dashboard" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+      <a data-tab="players" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Players</a>
+      <a data-tab="bans" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Bans</a>
+      <a data-tab="config" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Config</a>
+      <a data-tab="logs" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Logs</a>
+      <a data-tab="admins" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Admins</a>
+      <div class="spacer"></div>
+      <a href="{{ url_for('index') }}" style="opacity:.5">&#8592; Back</a>
+    </nav>
+    <div class="sd-foot"><div class="dot"></div>Demo · Server live</div>
   </aside>
 
-  <main class="sd-main">
+  <main class="sd-body">
+
     <!-- DASHBOARD -->
     <div class="sd-page active" id="tab-dashboard">
-      <div class="sd-top"><div><h2>Server <span style="color:var(--brand)">Dashboard</span></h2><div class="sub">Demo preview · dati in tempo reale simulati</div></div></div>
-      <div class="sd-stats">
-        <div class="sd-card"><div class="ch">Players Online</div><div class="big" style="color:var(--good)">64</div><div class="sub">Currently connected</div></div>
-        <div class="sd-card"><div class="ch">Staff Online</div><div class="big">4</div><div class="sub">With admin perms</div></div>
-        <div class="sd-card"><div class="ch">Total Bans</div><div class="big" style="color:var(--danger)">1,247</div><div class="sub">All time</div></div>
-        <div class="sd-card"><div class="ch">Uptime</div><div class="big">14d 7h</div><div class="sub">Server running</div></div>
+      <div class="sd-top"><div><h2>Server <span style="color:var(--brand)">Dashboard</span></h2><div class="sub">Demo preview · dati in tempo reale</div></div></div>
+      <div class="sd-grid">
+        <div class="sd-stat"><div class="ic g">&#9679;</div><div><div class="n" style="color:var(--good)">64</div><div class="l">Players Online</div></div></div>
+        <div class="sd-stat"><div class="ic b">&#128101;</div><div><div class="n">4</div><div class="l">Staff Online</div></div></div>
+        <div class="sd-stat"><div class="ic r">&#128683;</div><div><div class="n" style="color:var(--danger)">1,247</div><div class="l">Total Bans</div></div></div>
+        <div class="sd-stat"><div class="ic b">&#9201;</div><div><div class="n">14d 7h</div><div class="l">Uptime</div></div></div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div class="sd-card"><div class="ch">Recent Bans</div>
-          <div id="demo-recent-bans">
-            {% for b in demo_bans[:5] %}
-            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px">
-              <span>{{ b.player_name }}</span>
-              <span class="sd-pill {{ b.category }}">{{ b.category }}</span>
-            </div>
-            {% endfor %}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="sd-tbl"><div style="padding:10px 12px;font-size:10px;text-transform:uppercase;color:var(--text-dim);letter-spacing:.08em;border-bottom:1px solid var(--border)">Recent Bans</div>
+          {% for b in demo_bans[:4] %}
+          <div style="display:flex;justify-content:space-between;padding:7px 12px;border-bottom:1px solid var(--border);font-size:11px">
+            <span>{{ b.player_name }}</span>
+            <span class="badge {{ b.category }}">{{ b.category }}</span>
           </div>
+          {% endfor %}
         </div>
-        <div class="sd-card"><div class="ch">Detection Activity</div>
-          <div id="demo-recent-logs">
-            {% for log in demo_logs[:5] %}
-            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px">
-              <span>{{ log.player_name }}</span>
-              <span class="sd-pill {{ log.action }}">{{ log.action }}</span>
-            </div>
-            {% endfor %}
+        <div class="sd-tbl"><div style="padding:10px 12px;font-size:10px;text-transform:uppercase;color:var(--text-dim);letter-spacing:.08em;border-bottom:1px solid var(--border)">Detection Activity</div>
+          {% for log in demo_logs %}
+          <div style="display:flex;justify-content:space-between;padding:7px 12px;border-bottom:1px solid var(--border);font-size:11px">
+            <span>{{ log.player_name }}</span>
+            <span class="badge {{ log.action }}">{{ log.action }}</span>
           </div>
+          {% endfor %}
         </div>
       </div>
     </div>
@@ -182,21 +185,20 @@
     <!-- PLAYERS -->
     <div class="sd-page" id="tab-players">
       <div class="sd-top"><div><h2>Players</h2><div class="sub">Connected players &amp; identifiers</div></div></div>
-      <div class="sd-toolbar">
-        <div class="sd-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" id="playerSearch" placeholder="Search by name, ID, or identifier..." oninput="filterTable('playerTable',this.value)"></div>
+      <div class="sd-bar">
+        <div class="srch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" id="playerSearch" placeholder="Search..." oninput="filterTable('playerTable',this.value)"></div>
       </div>
-      <div class="sd-table-wrap">
-        <table class="sd-table" id="playerTable">
-          <thead><tr><th>ID</th><th>Name</th><th>Steam</th><th>IP</th><th>License</th><th>Discord</th><th>Playtime</th></tr></thead>
+      <div class="sd-tbl">
+        <table id="playerTable">
+          <thead><tr><th>ID</th><th>Name</th><th>Steam</th><th>IP</th><th>License</th><th>Playtime</th></tr></thead>
           <tbody>
             {% for p in demo_players %}
-            <tr onclick="openPlayerModal({{ p.id }},'{{ p.name|e }}','{{ p.steam }}','{{ p.ip }}','{{ p.license }}','{{ p.discord }}','{{ p.playtime }}')" style="cursor:pointer">
+            <tr onclick="openPanel({{ p.id }},'{{ p.name|e }}','{{ p.steam }}','{{ p.ip }}','{{ p.license }}','{{ p.discord }}','{{ p.playtime }}')">
               <td class="mono">{{ p.id }}</td>
               <td><strong>{{ p.name }}</strong></td>
-              <td class="mono">{{ p.steam[:16] }}...</td>
+              <td class="mono">{{ p.steam[:14] }}..</td>
               <td class="mono">{{ p.ip }}</td>
-              <td class="mono">{{ p.license[:20] }}...</td>
-              <td class="mono">{{ p.discord[:18] }}...</td>
+              <td class="mono">{{ p.license[:16] }}..</td>
               <td class="mono">{{ p.playtime }}</td>
             </tr>
             {% endfor %}
@@ -208,23 +210,13 @@
     <!-- BANS -->
     <div class="sd-page" id="tab-bans">
       <div class="sd-top"><div><h2>Ban <span style="color:var(--brand)">List</span></h2><div class="sub">All banned players</div></div></div>
-      <div class="sd-toolbar">
-        <div class="sd-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" id="banSearch" placeholder="Search bans..." oninput="filterTable('banTable',this.value)"></div>
-      </div>
-      <div class="sd-table-wrap">
-        <table class="sd-table" id="banTable">
-          <thead><tr><th>ID</th><th>Player</th><th>Reason</th><th>Category</th><th>Steam</th><th>IP</th><th>Date</th></tr></thead>
+      <div class="sd-bar"><div class="srch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Search bans..." oninput="filterTable('banTable',this.value)"></div></div>
+      <div class="sd-tbl">
+        <table id="banTable">
+          <thead><tr><th>ID</th><th>Player</th><th>Reason</th><th>Type</th><th>Steam</th><th>Date</th></tr></thead>
           <tbody>
             {% for b in demo_bans %}
-            <tr>
-              <td class="mono">#{{ b.ban_id }}</td>
-              <td><strong>{{ b.player_name }}</strong></td>
-              <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ b.reason }}</td>
-              <td><span class="sd-pill {{ b.category }}">{{ b.category }}</span></td>
-              <td class="mono">{{ b.steam[:16] }}...</td>
-              <td class="mono">{{ b.ip }}</td>
-              <td class="mono" style="font-size:10px">{{ b.banned_at }}</td>
-            </tr>
+            <tr><td class="mono">#{{ b.ban_id }}</td><td><strong>{{ b.player_name }}</strong></td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ b.reason }}</td><td><span class="badge {{ b.category }}">{{ b.category }}</span></td><td class="mono">{{ b.steam[:14] }}..</td><td class="mono" style="font-size:9px">{{ b.banned_at }}</td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -233,69 +225,39 @@
 
     <!-- CONFIG -->
     <div class="sd-page" id="tab-config">
-      <div class="sd-top"><div><h2>Configuration</h2><div class="sub">Remote anticheat settings · demo modificabile</div></div><button class="btn btn-primary btn-sm" onclick="saveDemoConfig()">Save Changes</button></div>
-      <form id="configForm">
-      <div class="sd-config-group">
-        <h3>Rilevamento Cheat</h3>
-        {% set config_toggles = [
-          ('AntiNoclip', 'Rileva e blocca noclip', true),
-          ('AntiAimbot', 'Raytrace headshot analysis', true),
-          ('AntiGodmode', 'Health/armor manipulation', true),
-          ('AntiVehicleSpawn', 'Vehicle spawn blacklist', true),
-          ('AntiWeaponSpawn', 'Weapon spawn blacklist', true),
-          ('AntiModKeys', 'Mod menu key combinations', true),
-          ('AntiSpectate', 'Unauthorized spectating', true),
-          ('ModMenuScan', 'Mod menu variable scanner', true),
-          ('EventBlacklist', 'Block blacklisted ESX events', true),
-          ('EntitySpawn', 'Entity spawn detection', true),
-          ('SpeedHack', 'Speed hack detection', true),
-          ('SuperJump', 'Super jump prevention', true),
-        ] %}
-        {% for key, desc, val in config_toggles %}
-        <div class="sd-config-row">
-          <div><div class="lbl">{{ key }}</div><div class="desc">{{ desc }}</div></div>
-          <div class="sd-toggle on" data-key="{{ key }}" onclick="toggleConfig(this)"></div>
-        </div>
+      <div class="sd-top"><div><h2>Configuration</h2><div class="sub">Remote anticheat settings</div></div></div>
+      <div class="sd-grp"><h3>Rilevamento Cheat</h3>
+        {% set toggs = [('AntiNoclip','Rileva e blocca noclip'),('AntiAimbot','Raytrace headshot analysis'),('AntiGodmode','Health/armor manipulation'),('AntiVehicleSpawn','Vehicle spawn detection'),('AntiWeaponSpawn','Weapon spawn blacklist'),('AntiModKeys','Mod menu key combos'),('AntiSpectate','Unauthorized spectating'),('ModMenuScan','Mod menu variable scanner')] %}
+        {% for k,d in toggs %}
+        <div class="sd-row"><div><div class="lb">{{ k }}</div><div class="ds">{{ d }}</div></div><div class="sd-tog on" onclick="this.classList.toggle('on')"></div></div>
         {% endfor %}
       </div>
-      <div class="sd-config-group">
-        <h3>Limiti e Soglie</h3>
-        {% set config_limits = [
-          ('NoclipTriggerCount', 5, 'Max noclip warnings before ban'),
-          ('SpeedThreshold', 150, 'Speed limit km/h'),
-          ('AimbotThreshold', 85, 'Headshot % threshold'),
-          ('TeleportDistance', 5000, 'Max coordinate jump'),
-        ] %}
-        {% for key, val, desc in config_limits %}
-        <div class="sd-config-row">
-          <div><div class="lbl">{{ key }}</div><div class="desc">{{ desc }}</div></div>
-          <span class="val">{{ val }}</span>
-        </div>
+      <div class="sd-grp"><h3>Limiti</h3>
+        {% set lims = [('NoclipTriggerCount',5,'Max noclip warnings'),('SpeedThreshold','150 km/h','Speed limit'),('AimbotThreshold','85%','Headshot threshold')] %}
+        {% for k,v,d in lims %}
+        <div class="sd-row"><div><div class="lb">{{ k }}</div><div class="ds">{{ d }}</div></div><span class="vl">{{ v }}</span></div>
         {% endfor %}
       </div>
-      </form>
     </div>
 
     <!-- LOGS -->
     <div class="sd-page" id="tab-logs">
       <div class="sd-top"><div><h2>Detection <span style="color:var(--brand)">Logs</span></h2><div class="sub">Recent anticheat activity</div></div>
-        <div style="display:flex;gap:6px">
-          <select id="logFilter" onchange="filterLogs()" style="background:var(--bg-2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:11px;font-family:var(--mono);outline:none">
-            <option value="all">All</option><option value="ban">Bans</option><option value="kick">Kicks</option><option value="flag">Flags</option>
-          </select>
-        </div>
+        <select onchange="filterLogs(this.value)" style="background:var(--bg-2);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:5px;font-size:10px;font-family:var(--mono);outline:none">
+          <option value="all">All</option><option value="ban">Bans</option><option value="kick">Kicks</option><option value="flag">Flags</option>
+        </select>
       </div>
-      <div class="sd-table-wrap">
-        <table class="sd-table" id="logTable">
+      <div class="sd-tbl">
+        <table id="logTable">
           <thead><tr><th>Time</th><th>Player</th><th>Action</th><th>Reason</th><th>Detections</th></tr></thead>
           <tbody>
             {% for log in demo_logs %}
             <tr class="log-row" data-action="{{ log.action }}">
-              <td class="mono" style="font-size:10px;white-space:nowrap">{{ log.time }}</td>
+              <td class="mono" style="font-size:9px;white-space:nowrap">{{ log.time }}</td>
               <td><strong>{{ log.player_name }}</strong></td>
-              <td><span class="sd-pill {{ log.action }}">{{ log.action }}</span></td>
-              <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ log.reason }}</td>
-              <td class="mono" style="font-size:11px">{{ log.detections }}</td>
+              <td><span class="badge {{ log.action }}">{{ log.action }}</span></td>
+              <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ log.reason }}</td>
+              <td class="mono">{{ log.detections }}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -305,20 +267,12 @@
 
     <!-- ADMINS -->
     <div class="sd-page" id="tab-admins">
-      <div class="sd-top"><div><h2>Administrators</h2><div class="sub">Manage staff permissions</div></div></div>
-      <div class="sd-table-wrap">
-        <table class="sd-table">
-          <thead><tr><th>ID</th><th>Name</th><th>Permission</th><th>Status</th></tr></thead>
-          <tbody>
-            {% for a in demo_admins %}
-            <tr>
-              <td class="mono">{{ a.id }}</td>
-              <td><strong>{{ a.name }}</strong></td>
-              <td><span class="mono" style="color:var(--brand)">{{ a.ace }}</span></td>
-              <td><span class="mono" style="color:{{ 'var(--good)' if a.online else 'var(--text-faint)' }}">{{ 'Online' if a.online else 'Offline' }}</span></td>
-            </tr>
-            {% endfor %}
-          </tbody>
+      <div class="sd-top"><div><h2>Administrators</h2><div class="sub">Staff permissions</div></div></div>
+      <div class="sd-tbl">
+        <table><thead><tr><th>ID</th><th>Name</th><th>Permission</th><th>Status</th></tr></thead>
+          <tbody>{% for a in demo_admins %}
+            <tr><td class="mono">{{ a.id }}</td><td><strong>{{ a.name }}</strong></td><td><span class="mono" style="color:var(--brand)">{{ a.ace }}</span></td><td><span class="mono" style="color:{{ 'var(--good)' if a.online else 'var(--text-faint)' }}">{{ 'Online' if a.online else 'Offline' }}</span></td></tr>
+          {% endfor %}</tbody>
         </table>
       </div>
     </div>
@@ -326,94 +280,39 @@
   </main>
 </div>
 
-<!-- Player Action Modal -->
-<div id="playerModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center" onclick="if(event.target===this)closePlayerModal()">
-  <div style="background:var(--panel);border:1px solid var(--border);border-radius:14px;width:90%;max-width:480px;padding:24px;animation:fadeIn .15s ease;position:relative">
-    <button onclick="closePlayerModal()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;line-height:1">&times;</button>
-    <h3 style="margin-bottom:4px" id="modalPlayerName">—</h3>
-    <div class="sub" style="margin-bottom:16px;font-size:11px;font-family:var(--mono)" id="modalPlayerId">ID: —</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;margin-bottom:16px">
-      <div><span style="color:var(--text-dim)">Steam</span><br><span class="mono" id="modalSteam" style="font-size:11px;word-break:break-all">—</span></div>
-      <div><span style="color:var(--text-dim)">IP</span><br><span class="mono" id="modalIp" style="font-size:11px">—</span></div>
-      <div><span style="color:var(--text-dim)">License</span><br><span class="mono" id="modalLicense" style="font-size:11px;word-break:break-all">—</span></div>
-      <div><span style="color:var(--text-dim)">Discord</span><br><span class="mono" id="modalDiscord" style="font-size:11px;word-break:break-all">—</span></div>
-      <div><span style="color:var(--text-dim)">Playtime</span><br><span class="mono" id="modalPlaytime" style="font-size:11px">—</span></div>
+<!-- Slide-in player panel -->
+<div class="sd-overlay" id="panelOverlay" onclick="closePanel()"></div>
+<div class="sd-panel" id="playerPanel">
+  <div class="sd-phead">
+    <h3 id="panelName">—</h3>
+    <button onclick="closePanel()">&times;</button>
+  </div>
+  <div class="sd-pbody">
+    <div class="sd-pinfo">
+      <div><span>ID</span><span class="mono" id="panelId">—</span></div>
+      <div><span>Steam</span><span class="mono" id="panelSteam">—</span></div>
+      <div><span>IP</span><span class="mono" id="panelIp">—</span></div>
+      <div><span>License</span><span class="mono" id="panelLicense">—</span></div>
+      <div><span>Discord</span><span class="mono" id="panelDiscord">—</span></div>
+      <div><span>Playtime</span><span class="mono" id="panelPlaytime">—</span></div>
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap" id="modalActions">
-      <button class="btn btn-primary btn-sm" onclick="modalAction('ban')" style="flex:1;justify-content:center">Ban</button>
-      <button class="btn btn-sm" onclick="modalAction('kick')" style="flex:1;justify-content:center;background:var(--amber);color:#000;border:none">Kick</button>
-      <button class="btn btn-sm" onclick="modalAction('warn')" style="flex:1;justify-content:center;background:#3b82f6;color:#fff;border:none">Warn</button>
-      <button class="btn btn-sm" onclick="modalAction('spectate')" style="flex:1;justify-content:center;background:var(--text-dim);color:#fff;border:none">Spectate</button>
-      <button class="btn btn-sm" onclick="modalAction('wipe')" style="flex:1;justify-content:center;background:var(--danger);color:#fff;border:none">Wipe</button>
+    <div class="sd-pacts">
+      <button class="b-ban" onclick="panelAction('ban')">&#128680; Ban</button>
+      <button class="b-kick" onclick="panelAction('kick')">&#128682; Kick</button>
+      <button class="b-warn" onclick="panelAction('warn')">&#128220; Warn</button>
+      <button class="b-spectate" onclick="panelAction('spectate')">&#128065; Spectate</button>
+      <button class="b-wipe" onclick="panelAction('wipe')" style="grid-column:1/-1">&#128465; Wipe Entities</button>
     </div>
-    <div id="modalMsg" style="margin-top:10px;font-size:11px;color:var(--text-dim);text-align:center"></div>
+    <div class="sd-pmsg" id="panelMsg"></div>
   </div>
 </div>
 
 <script>
-// Player modal
-var _modalPlayer = null;
-function openPlayerModal(id, name, steam, ip, license, discord, playtime){
-  _modalPlayer = {id:id, name:name};
-  document.getElementById('modalPlayerName').textContent = name;
-  document.getElementById('modalPlayerId').textContent = 'ID: ' + id;
-  document.getElementById('modalSteam').textContent = steam;
-  document.getElementById('modalIp').textContent = ip;
-  document.getElementById('modalLicense').textContent = license;
-  document.getElementById('modalDiscord').textContent = discord;
-  document.getElementById('modalPlaytime').textContent = playtime;
-  document.getElementById('playerModal').style.display = 'flex';
-}
-function closePlayerModal(){
-  document.getElementById('playerModal').style.display = 'none';
-  document.getElementById('modalMsg').textContent = '';
-}
-function modalAction(action){
-  if(!_modalPlayer) return;
-  var msg = document.getElementById('modalMsg');
-  if(action === 'ban'){
-    var reason = prompt('Ban reason for ' + _modalPlayer.name + ':');
-    if(!reason) return;
-    msg.textContent = '&#128680; Ban request sent for ' + _modalPlayer.name;
-  } else if(action === 'kick'){
-    if(!confirm('Kick ' + _modalPlayer.name + '?')) return;
-    msg.textContent = '&#128682; Kick request sent for ' + _modalPlayer.name;
-  } else if(action === 'warn'){
-    msg.textContent = '&#128220; Warning sent to ' + _modalPlayer.name;
-  } else if(action === 'spectate'){
-    msg.textContent = '&#128065; Spectate request sent for ' + _modalPlayer.name;
-  } else if(action === 'wipe'){
-    if(!confirm('Wipe all entities of ' + _modalPlayer.name + '?')) return;
-    msg.textContent = '&#128465; Wipe request sent for ' + _modalPlayer.name;
-  }
-  msg.style.color = 'var(--good)';
-}
-
-// Config toggles
-function toggleConfig(el){
-  el.classList.toggle('on');
-}
-function saveDemoConfig(){
-  var data = {};
-  document.querySelectorAll('.sd-toggle').forEach(function(el){ data[el.dataset.key] = el.classList.contains('on'); });
-  var msg = document.getElementById('modalMsg');
-  if(!msg){
-    var d = document.createElement('div');
-    d.id = 'cfgMsg';
-    d.style.cssText = 'margin-top:10px;font-size:11px;color:var(--good);text-align:center';
-    document.getElementById('tab-config').querySelector('.sd-top').appendChild(d);
-  }
-  var el = document.getElementById('cfgMsg') || msg;
-  if(el){
-    el.textContent = 'Config saved! (demo)';
-    el.style.color = 'var(--good)';
-  }
-}
-
 // Tab switching
-document.querySelectorAll('.sd-nav[data-tab]').forEach(function(el){
-  el.addEventListener('click', function(){
-    document.querySelectorAll('.sd-nav[data-tab]').forEach(function(x){ x.classList.remove('active'); });
+document.querySelectorAll('.sd-nav a[data-tab]').forEach(function(el){
+  el.addEventListener('click', function(e){
+    e.preventDefault();
+    document.querySelectorAll('.sd-nav a[data-tab]').forEach(function(x){ x.classList.remove('active'); });
     document.querySelectorAll('.sd-page').forEach(function(x){ x.classList.remove('active'); });
     el.classList.add('active');
     var tab = document.getElementById('tab-' + el.dataset.tab);
@@ -421,20 +320,58 @@ document.querySelectorAll('.sd-nav[data-tab]').forEach(function(el){
   });
 });
 
-// Table search
-function filterTable(tableId, val){
-  var rows = document.getElementById(tableId).querySelectorAll('tbody tr');
-  var q = val.toLowerCase();
-  rows.forEach(function(r){
+// Player panel
+var _sel = null;
+function openPanel(id, name, steam, ip, license, discord, playtime){
+  _sel = {id:id, name:name};
+  document.getElementById('panelName').textContent = name;
+  document.getElementById('panelId').textContent = id;
+  document.getElementById('panelSteam').textContent = steam;
+  document.getElementById('panelIp').textContent = ip;
+  document.getElementById('panelLicense').textContent = license;
+  document.getElementById('panelDiscord').textContent = discord;
+  document.getElementById('panelPlaytime').textContent = playtime;
+  document.getElementById('playerPanel').classList.add('open');
+  document.getElementById('panelOverlay').classList.add('open');
+  document.getElementById('panelMsg').textContent = '';
+}
+function closePanel(){
+  document.getElementById('playerPanel').classList.remove('open');
+  document.getElementById('panelOverlay').classList.remove('open');
+}
+function panelAction(action){
+  if(!_sel) return;
+  var msg = document.getElementById('panelMsg');
+  if(action==='ban'){
+    var reason = prompt('Ban reason for ' + _sel.name + ':');
+    if(!reason) return;
+    msg.innerHTML = '&#10003; Ban request sent';
+  } else if(action==='kick'){
+    if(!confirm('Kick ' + _sel.name + '?')) return;
+    msg.innerHTML = '&#10003; Kick request sent';
+  } else if(action==='warn'){
+    msg.innerHTML = '&#10003; Warning sent';
+  } else if(action==='spectate'){
+    msg.innerHTML = '&#10003; Spectate request sent';
+  } else if(action==='wipe'){
+    if(!confirm('Wipe all entities of ' + _sel.name + '?')) return;
+    msg.innerHTML = '&#10003; Wipe request sent';
+  }
+  msg.style.color = 'var(--good)';
+}
+
+// Table filter
+function filterTable(tid, v){
+  var q = v.toLowerCase();
+  document.getElementById(tid).querySelectorAll('tbody tr').forEach(function(r){
     r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
   });
 }
 
 // Log filter
-function filterLogs(){
-  var val = document.getElementById('logFilter').value;
+function filterLogs(v){
   document.querySelectorAll('.log-row').forEach(function(r){
-    r.style.display = (val === 'all' || r.dataset.action === val) ? '' : 'none';
+    r.style.display = (v==='all' || r.dataset.action===v) ? '' : 'none';
   });
 }
 </script>
