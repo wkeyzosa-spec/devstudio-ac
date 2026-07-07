@@ -125,8 +125,14 @@
 <div class="sd-layout">
   <aside class="sd-sidebar">
     <div class="sd-sinfo">
-      <div class="dot online"></div>
-      <div><b>DEVSTUDIO RP</b><small>Online · 64 players</small></div>
+      <img src="{{ url_for('static', filename='devstudiologo2.png') }}" alt="DEV STUDIO AC" style="height:28px;width:auto;border-radius:5px">
+      <div>
+        <b style="font-size:12px">DEVSTUDIO RP</b>
+        <small style="display:flex;align-items:center;gap:4px;margin-top:1px">
+          <span class="dot online" style="width:6px;height:6px;display:inline-block"></span>
+          Online · 64 players
+        </small>
+      </div>
     </div>
     <div class="sd-nav active" data-tab="dashboard">
       <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
@@ -487,8 +493,10 @@
       <div class="sd-card" style="margin-bottom:8px">
         <div class="ch">Actions</div>
         <div style="display:flex;gap:6px;padding:8px 0;flex-wrap:wrap">
-          <button class="btn btn-sm" id="drawerSpectateBtn" onclick="showToast('Spectate: ' + (_drawerPlayer ? _drawerPlayer.name : '') + ' (demo)')" style="color:#60a5fa;border-color:#1d3d7f">Spectate</button>
-          <button class="btn btn-sm" id="drawerTeleportBtn" onclick="showToast('Teleport to ' + (_drawerPlayer ? _drawerPlayer.name : '') + ' (demo)')" style="color:#a855f7;border-color:#581c87">Teleport</button>
+          <button class="btn btn-sm" style="color:#60a5fa;border-color:#1d3d7f;font-size:10px;padding:5px 10px" onclick="showToast('Spectate: ' + (_drawerPlayer ? _drawerPlayer.name : '') + ' (demo)')">&#128065; Spectate</button>
+          <button class="btn btn-sm" style="color:#f59e0b;border-color:#7f5d1d;font-size:10px;padding:5px 10px" onclick="showToast('Teleport to ' + (_drawerPlayer ? _drawerPlayer.name : '') + ' (demo)')">&#128656; Teleport</button>
+          <button class="btn btn-sm" style="color:#a855f7;border-color:#581c87;font-size:10px;padding:5px 10px" onclick="showToast('Warn (demo)')">&#128220; Warn</button>
+          <button class="btn btn-sm" style="color:#ef4444;border-color:#7f1d1d;font-size:10px;padding:5px 10px" onclick="showToast('Wipe (demo)')">&#128465; Wipe</button>
         </div>
       </div>
       <div class="sd-card">

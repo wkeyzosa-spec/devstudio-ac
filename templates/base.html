@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}DEV STUDIO AC · FiveM Anticheat{% endblock %}</title>
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='devstudiologo2.png') }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -15,13 +16,14 @@
 
 <nav>
   <a class="brand" href="{{ url_for('index') }}">
-    <div class="brand-mark">D</div>
+    <img src="{{ url_for('static', filename='devstudiologo2.png') }}" alt="DEV STUDIO AC" class="brand-logo" style="height:32px;width:auto;border-radius:6px">
     <div class="brand-name">DEV STUDIO <b>AC</b></div>
   </a>
   <div class="nav-mid">
     <a href="{{ url_for('index') }}">Home</a>
     <a href="{{ url_for('index') }}#features">Funzionalità</a>
     <a href="{{ url_for('pricing') }}">Prezzi</a>
+    <a href="{{ url_for('dashboard_demo') }}">Demo</a>
     {% if current_user.is_authenticated %}
     <a href="{{ url_for('dashboard') }}">Dashboard</a>
     {% endif %}
@@ -44,6 +46,7 @@
   <a href="{{ url_for('index') }}">Home</a>
   <a href="{{ url_for('index') }}#features">Funzionalità</a>
   <a href="{{ url_for('pricing') }}">Prezzi</a>
+  <a href="{{ url_for('dashboard_demo') }}">Demo</a>
   {% if current_user.is_authenticated %}
   <a href="{{ url_for('dashboard') }}">Dashboard</a>
   <a class="btn btn-primary" href="{{ url_for('logout') }}">Logout</a>
@@ -72,7 +75,7 @@
   <div class="foot-grid">
     <div class="foot-brand">
       <div class="brand" style="cursor:default">
-        <div class="brand-mark">D</div>
+        <img src="{{ url_for('static', filename='devstudiologo2.png') }}" alt="DEV STUDIO AC" style="height:28px;width:auto;border-radius:5px">
         <div class="brand-name">DEV STUDIO <b>AC</b></div>
       </div>
       <p>Anticheat premium per FiveM. Protezione enterprise contro mod menu, aimbot, noclip e ogni cheat.</p>

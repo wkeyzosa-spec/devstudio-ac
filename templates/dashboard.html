@@ -6,7 +6,7 @@
 .db-layout{display:flex;min-height:calc(100vh - 60px);background:var(--bg-2)}
 .db-sidebar{width:var(--sidebar-w);background:var(--panel);border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;gap:2px;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}
 .db-sidebar .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px}
-.db-sidebar .brand .logo{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px;background:linear-gradient(135deg,var(--brand),var(--brand-2));box-shadow:0 4px 12px var(--brand-glow)}
+.db-sidebar .brand .brand-logo{height:36px;width:auto;border-radius:8px;border:1px solid var(--border)}
 .db-sidebar .brand .who b{font-size:13px;display:block}
 .db-sidebar .brand .who small{color:var(--text-dim);font-size:10px}
 .side-group{color:var(--text-faint);font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin:16px 10px 4px}
@@ -49,7 +49,7 @@
 <div class="db-layout">
   <aside class="db-sidebar">
     <div class="brand">
-      <div class="logo">D</div>
+      <img src="{{ url_for('static', filename='devstudiologo2.png') }}" alt="DEV STUDIO AC" class="brand-logo" style="height:36px;border-radius:8px">
       <div class="who"><b>DEV STUDIO AC</b><small>Customer Area</small></div>
     </div>
     <div class="side-nav active" data-page="licenses"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Licenze</div>
@@ -76,10 +76,9 @@
           <div class="ch"><span class="badge {{ lic.status }}">{{ lic.status }}</span> <span style="margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--text-faint)">{{ lic.type|capitalize }}</span></div>
           <div class="license-key-display" style="margin-bottom:12px">{{ lic.key[:32] }}{% if lic.key|length > 32 %}...{% endif %}</div>
           <div class="sub" style="margin-bottom:2px"><strong>Crea:</strong> {{ lic.created_at.strftime('%d/%m/%Y') }}</div>
-          <div class="sub" style="margin-bottom:4px"><strong>Scade:</strong> {{ lic.expires_at.strftime('%d/%m/%Y') if lic.expires_at else 'Mai (Lifetime)' }}</div>
+          <div class="sub" style="margin-bottom:14px"><strong>Scade:</strong> {{ lic.expires_at.strftime('%d/%m/%Y') if lic.expires_at else 'Mai (Lifetime)' }}</div>
           {% if lic.status == 'active' %}
-          <a class="btn btn-primary" href="{{ url_for('download', token=lic.download_token) }}" style="width:100%;justify-content:center;padding:10px;font-size:12px;margin-bottom:6px">&#8595; Scarica Resource</a>
-          <a class="btn btn-ghost" href="/dashboard/server/{{ lic.server_id }}" style="width:100%;justify-content:center;padding:10px;font-size:12px">&#128202; Pannello Live</a>
+          <a class="btn btn-primary" href="{{ url_for('download', token=lic.download_token) }}" style="width:100%;justify-content:center;padding:10px;font-size:12px">&#8595; Scarica Resource</a>
           {% endif %}
         </div>
         {% endfor %}

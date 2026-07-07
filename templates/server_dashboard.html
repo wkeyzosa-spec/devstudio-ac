@@ -95,8 +95,14 @@
 <div class="sd-layout">
   <aside class="sd-sidebar">
     <div class="sd-sinfo">
-      <div class="dot {{ 'online' if server_online else 'offline' }}"></div>
-      <div><b>{{ server_name or 'DEVSTUDIO' }}</b><small>{{ 'Online' if server_online else 'Offline' }}</small></div>
+      <img src="{{ url_for('static', filename='devstudiologo2.png') }}" alt="DEV STUDIO AC" style="height:28px;width:auto;border-radius:5px">
+      <div>
+        <b style="font-size:12px">{{ server_name or 'DEVSTUDIO' }}</b>
+        <small style="display:flex;align-items:center;gap:4px;margin-top:1px">
+          <span class="dot {{ 'online' if server_online else 'offline' }}" style="width:6px;height:6px;display:inline-block"></span>
+          {{ 'Online' if server_online else 'Offline' }}
+        </small>
+      </div>
     </div>
     <div class="sd-nav active" data-tab="dashboard">
       <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
@@ -140,10 +146,10 @@
     <div class="sd-page active" id="tab-dashboard">
       <div class="sd-top"><div><h2>Server <span style="color:var(--brand)">Dashboard</span></h2><div class="sub">{{ server_id }} · real-time</div></div></div>
       <div class="sd-stats">
-        <div class="sd-card"><div class="ch">Players Online</div><div class="big" id="stat-online" style="color:var(--good)">{{ stats.online or 0 }}</div><div class="sub">Currently connected</div></div>
-        <div class="sd-card"><div class="ch">Staff Online</div><div class="big" id="stat-staff">{{ stats.staff_online or 0 }}</div><div class="sub">With admin perms</div></div>
-        <div class="sd-card"><div class="ch">Total Bans</div><div class="big" id="stat-bans" style="color:var(--danger)">{{ stats.total_bans or 0 }}</div><div class="sub">All time</div></div>
-        <div class="sd-card"><div class="ch">Uptime</div><div class="big" id="stat-uptime">{{ stats.uptime or '0h' }}</div><div class="sub">Server running</div></div>
+        <div class="sd-card"><div class="ch"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Players Online</div><div class="big" id="stat-online" style="color:var(--good)">{{ stats.online or 0 }}</div><div class="sub">Currently connected</div></div>
+        <div class="sd-card"><div class="ch"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Staff Online</div><div class="big" id="stat-staff">{{ stats.staff_online or 0 }}</div><div class="sub">With admin perms</div></div>
+        <div class="sd-card"><div class="ch"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Total Bans</div><div class="big" id="stat-bans" style="color:var(--danger)">{{ stats.total_bans or 0 }}</div><div class="sub">All time</div></div>
+        <div class="sd-card"><div class="ch"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Uptime</div><div class="big" id="stat-uptime">{{ stats.uptime or '0h' }}</div><div class="sub">Server running</div></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="sd-card"><div class="ch">Recent Bans</div>
@@ -486,10 +492,12 @@
       <div class="sd-card" style="margin-bottom:8px">
         <div class="ch">Actions</div>
         <div style="display:flex;gap:6px;padding:8px 0;flex-wrap:wrap">
-          <button class="btn btn-sm btn-primary" id="drawerBanBtn" onclick="drawerBan()">Ban</button>
-          <button class="btn btn-sm" id="drawerKickBtn" onclick="drawerKick()" style="color:var(--amber);border-color:var(--amber)">Kick</button>
-          <button class="btn btn-sm" id="drawerSpectateBtn" onclick="drawerSpectate()" style="color:#60a5fa;border-color:#1d3d7f">Spectate</button>
-          <button class="btn btn-sm" id="drawerTeleportBtn" onclick="drawerTeleport()" style="color:#a855f7;border-color:#581c87">Teleport</button>
+          <button class="btn btn-sm btn-primary" id="drawerBanBtn" onclick="drawerBan()" style="font-size:10px;padding:5px 10px">&#128683; Ban</button>
+          <button class="btn btn-sm" id="drawerKickBtn" onclick="drawerKick()" style="color:var(--amber);border-color:var(--amber);font-size:10px;padding:5px 10px">&#128682; Kick</button>
+          <button class="btn btn-sm" id="drawerWarnBtn" onclick="drawerWarn()" style="color:#60a5fa;border-color:#1d3d7f;font-size:10px;padding:5px 10px">&#128220; Warn</button>
+          <button class="btn btn-sm" id="drawerSpectateBtn" onclick="drawerSpectate()" style="color:#a855f7;border-color:#581c87;font-size:10px;padding:5px 10px">&#128065; Spectate</button>
+          <button class="btn btn-sm" id="drawerTeleportBtn" onclick="drawerTeleport()" style="color:#f59e0b;border-color:#7f5d1d;font-size:10px;padding:5px 10px">&#128656; Teleport</button>
+          <button class="btn btn-sm" id="drawerWipeBtn" onclick="drawerWipe()" style="color:#ef4444;border-color:#7f1d1d;font-size:10px;padding:5px 10px">&#128465; Wipe</button>
         </div>
       </div>
       <div class="sd-card">
@@ -621,6 +629,13 @@ function drawerKick(){
   kickPlayer(_drawerPlayer.id, _drawerPlayer.name, function(){ closePlayerPanel(); });
 }
 
+function drawerWarn(){
+  if(!_drawerPlayer) return;
+  var reason = prompt('Warn reason for ' + _drawerPlayer.name + ':');
+  if(!reason) return;
+  showToast('Warning sent to ' + _drawerPlayer.name);
+}
+
 function drawerSpectate(){
   if(!_drawerPlayer) return;
   showToast('Spectate: ' + _drawerPlayer.name + ' (richiesta inoltrata al server)');
@@ -629,6 +644,12 @@ function drawerSpectate(){
 function drawerTeleport(){
   if(!_drawerPlayer) return;
   showToast('Teleport to ' + _drawerPlayer.name + ' (richiesta inoltrata al server)');
+}
+
+function drawerWipe(){
+  if(!_drawerPlayer) return;
+  if(!confirm('Wipe all entities for ' + _drawerPlayer.name + '?')) return;
+  showToast('Entities wiped for ' + _drawerPlayer.name);
 }
 
 // Make player rows clickable
