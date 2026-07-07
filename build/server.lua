@@ -509,6 +509,9 @@ function SyncWebPanelPlayers()
         if IsPlayerAceAllowed(pid, 'Anticheat.Bypass') or IsPlayerAceAllowed(pid, 'DevStudioAC.admin') then
             staffCount = staffCount + 1
         end
+        local pos = playerPositions[pid]
+        local coords = pos or { x = 0, y = 0, z = 0 }
+        local country = GetPlayerCountry(pid)
         table.insert(players, {
             id = tonumber(pid),
             name = name,
@@ -520,6 +523,10 @@ function SyncWebPanelPlayers()
             live = ids.live,
             fivem = ids.fivem,
             playtime = playtime,
+            pos_x = coords.x,
+            pos_y = coords.y,
+            pos_z = coords.z,
+            country = country,
         })
     end
     PushWebPanel('POST', '/api/server/' .. sid .. '/players', players)
@@ -622,6 +629,61 @@ local function ExecutePendingKicks()
     })
 end
 
+local function GetPanelPendingCommands()
+    if not Config.BanAPI.Enabled then return end
+    local sid = GetPanelServerID()
+    local url = Config.BanAPI.Url .. '/api/server/' .. sid .. '/commands/pending'
+    PerformHttpRequest(url, function(err, text)
+        if err ~= 200 or not text then return end
+        local ok, data = pcall(json.decode, text)
+        if not ok or not data or not data.commands then return end
+        for _, cmd in ipairs(data.commands) do
+            local cmdId = cmd.id
+            local action = cmd.action
+            local targetId = tonumber(cmd.target_id)
+            local targetName = cmd.target_name or "Unknown"
+            local adminName = cmd.admin_name or ""
+            local executed = false
+            if action == "spectate" then
+                for _, pid in pairs(GetPlayers()) do
+                    if adminName ~= "" and GetPlayerName(pid) == adminName then
+                        if targetId and GetPlayerName(targetId) then
+                            TriggerClientEvent('acpanel:startSpectate', pid, targetId)
+                            print("[DevStudioAC] Web: " .. adminName .. " spectating " .. targetName)
+                            executed = true
+                        end
+                        break
+                    end
+                end
+            elseif action == "teleport" then
+                for _, pid in pairs(GetPlayers()) do
+                    if adminName ~= "" and GetPlayerName(pid) == adminName then
+                        if targetId then
+                            TriggerClientEvent('anticheat:TeleportToPlayer', pid, targetId)
+                            print("[DevStudioAC] Web: " .. adminName .. " teleporting to " .. targetName)
+                            executed = true
+                        end
+                        break
+                    end
+                end
+            elseif action == "wipe" then
+                if targetId then
+                    EntityWipe(0, targetId)
+                    print("[DevStudioAC] Web: Entity wipe on " .. targetName)
+                    executed = true
+                end
+            end
+            if executed then
+                PerformHttpRequest(Config.BanAPI.Url .. '/api/server/' .. sid .. '/commands/execute/' .. cmdId, function() end, 'POST', '{}', {
+                    ['Content-Type'] = 'application/json',
+                })
+            end
+        end
+    end, 'GET', '', {
+        ['Content-Type'] = 'application/json',
+    })
+end
+
 local playTracker = {}
 Citizen.CreateThread(function()
     while true do 
@@ -671,6 +733,27 @@ function GetLatest(count)
     end
     return retArr;
 end
+local function ExtractIP(pid)
+    local ids = ExtractIdentifiers(pid)
+    return ids.ip and ids.ip:gsub("^ip:", "") or ""
+end
+
+local countryCache = {}
+local function GetPlayerCountry(pid)
+    local ip = ExtractIP(pid)
+    if not ip or ip == "" then return "" end
+    if countryCache[ip] then return countryCache[ip] end
+    PerformHttpRequest("http://ip-api.com/json/" .. ip, function(err, text)
+        if err == 200 and text then
+            local ok, data = pcall(json.decode, text)
+            if ok and data and data.countryCode then
+                countryCache[ip] = data.countryCode
+            end
+        end
+    end, 'GET', '', { ['Content-Type'] = 'application/json' })
+    return ""
+end
+
 RegisterCommand("entitywipe", function(source, args, raw)
     local playerID = args[1]
     if (IsPlayerAceAllowed(source, "AntiCheat.Moderation")) then
@@ -712,6 +795,7 @@ if Config.BanAPI.Enabled then
             Citizen.Wait(15000)
             tick = tick + 1
             ExecutePendingKicks()
+            GetPanelPendingCommands()
             if tick % 2 == 0 then
                 SyncWebPanelPlayers()
                 SyncAdminsToPanel()
@@ -1497,4 +1581,13 @@ AddEventHandler('acpanel:getLogs', function()
         return
     end
     TriggerClientEvent('acpanel:receiveLogs', src, { logs = detectionLogs })
+end)
+
+-- Pre-fetch country on player connect
+AddEventHandler("playerConnecting", function()
+    local src = source
+    Citizen.CreateThread(function()
+        Citizen.Wait(3000)
+        GetPlayerCountry(src)
+    end)
 end)
