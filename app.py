@@ -241,9 +241,6 @@ def create_license(license_type, email='', discord='', note='', user_id=None):
         json.dump(lic_db, f, indent=2)
     return lic
 
-def license_to_server_id(license_key):
-    return hmac.new(b"DsAcServerId", license_key.encode(), hashlib.sha256).hexdigest()[:16]
-
 # ---------- PUBLIC ----------
 @app.route('/')
 def index():
@@ -305,10 +302,7 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    user_licenses = License.query.filter_by(user_id=current_user.id).all()
-    for lic in user_licenses:
-        lic.server_id = license_to_server_id(lic.key)
-    return render_template('dashboard.html', licenses=user_licenses)
+    return render_template('dashboard.html', licenses=License.query.filter_by(user_id=current_user.id).all())
 
 @app.route('/checkout/<license_type>')
 def checkout(license_type):
@@ -516,9 +510,7 @@ def admin_create():
     if lt not in LICENSE_TYPES:
         flash('Invalid type', 'danger')
         return redirect(url_for('admin_panel'))
-    user = User.query.filter_by(email=email).first()
-    user_id = user.id if user else None
-    lic = create_license(lt, email, discord, note, user_id=user_id)
+    lic = create_license(lt, email, discord, note)
     regen_licenses_json()
     flash(f'License {lic.key} created for {email}', 'success')
     return redirect(url_for('admin_panel'))
@@ -754,6 +746,18 @@ def api_get_server_bans(server_id):
             'live': b.live,
         }
     return jsonify(result)
+
+@app.route('/api/server/<server_id>/console', methods=['GET'])
+@rate_limit(30, 60)
+def api_server_console(server_id):
+    after = request.args.get('after', '0')
+    try: after_id = int(after)
+    except: after_id = 0
+    logs = ServerLog.query.filter(ServerLog.server_id == server_id, ServerLog.id > after_id).order_by(ServerLog.created_at.asc()).all()
+    return jsonify({'logs': [{
+        'id': log.id, 'time': log.created_at.strftime('%H:%M:%S') if log.created_at else '--:--:--',
+        'action': log.action, 'reason': log.reason, 'player_name': log.player_name
+    } for log in logs]})
 
 @app.route('/api/server/<server_id>/admins', methods=['POST'])
 @rate_limit(30, 60)

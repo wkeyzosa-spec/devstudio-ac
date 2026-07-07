@@ -2,233 +2,371 @@
 {% block title %}Server Dashboard · DEV STUDIO AC{% endblock %}
 {% block head %}
 <style>
-:root{--sd-w:220px}
-.sd-wrap{display:flex;min-height:calc(100vh - var(--nav-h));background:var(--bg-2)}
-.sd-aside{width:var(--sd-w);background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:var(--nav-h);height:calc(100vh - var(--nav-h));overflow:hidden}
-.sd-srv{padding:14px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
-.sd-srv .dot{width:8px;height:8px;border-radius:50%;flex:none}
-.sd-srv .dot.on{background:var(--good);box-shadow:0 0 8px var(--good)}
-.sd-srv .dot.off{background:var(--text-faint)}
-.sd-srv b{font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sd-srv small{color:var(--text-dim);font-size:10px;font-family:var(--mono)}
-.sd-nav{padding:6px 8px;flex:1;overflow-y:auto}
-.sd-nav a{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;color:var(--text-dim);font-size:12px;text-decoration:none;transition:.1s;margin-bottom:1px}
-.sd-nav a:hover{background:var(--bg-2);color:var(--text)}
-.sd-nav a.active{background:var(--brand-dim);color:#fff}
-.sd-nav a .ico{width:15px;height:15px;flex:none;opacity:.7}
-.sd-nav a.active .ico{opacity:1}
-.sd-nav .spacer{flex:1;min-height:6px}
-.sd-foot{padding:8px 12px;border-top:1px solid var(--border);font-size:10px;color:var(--text-faint);display:flex;align-items:center;gap:6px}
-.sd-foot .dot{width:5px;height:5px;border-radius:50%;flex:none;background:var(--good)}
-.sd-body{flex:1;padding:20px 24px;overflow-y:auto;max-height:calc(100vh - var(--nav-h))}
-.sd-page{display:none;animation:fadeIn .15s ease}
+:root{--sd-sidebar-w:220px}
+.sd-layout{display:flex;min-height:calc(100vh - var(--nav-h));background:var(--bg-2)}
+.sd-sidebar{width:var(--sd-sidebar-w);background:var(--panel);border-right:1px solid var(--border);
+  padding:14px 10px;display:flex;flex-direction:column;gap:2px;position:sticky;top:var(--nav-h);height:calc(100vh - var(--nav-h));overflow-y:auto}
+.sd-sinfo{display:flex;align-items:center;gap:10px;padding:6px 10px 14px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.sd-sinfo .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.sd-sinfo .dot.online{background:var(--good);box-shadow:0 0 8px var(--good)}
+.sd-sinfo .dot.offline{background:var(--text-faint)}
+.sd-sinfo b{font-size:13px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sd-sinfo small{color:var(--text-dim);font-size:10px;font-family:var(--mono)}
+.sd-nav{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:7px;color:var(--text-dim);
+  cursor:pointer;font-size:13px;transition:.1s;border:1px solid transparent}
+.sd-nav:hover{background:var(--bg-2);color:var(--text)}
+.sd-nav.active{background:var(--brand-dim);color:#fff;border-color:rgba(204,0,0,.3)}
+.sd-nav .ico{width:15px;height:15px;flex:none;opacity:.7}
+.sd-nav.active .ico{opacity:1}
+.sd-spacer{flex:1;min-height:10px}
+.sd-main{flex:1;padding:20px 24px;overflow-y:auto;max-height:calc(100vh - var(--nav-h))}
+.sd-page{display:none;animation:fadeIn .2s ease}
 .sd-page.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 .sd-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
-.sd-top h2{font-size:17px}
-.sd-top .sub{color:var(--text-dim);font-size:11px}
-.sd-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
-.sd-stat{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:12px}
-.sd-stat .ic{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;font-size:16px;flex:none}
-.sd-stat .ic.g{background:#0f2e1a;color:var(--good)}
-.sd-stat .ic.r{background:#2d0a0a;color:var(--danger)}
-.sd-stat .ic.b{background:#0a1a2d;color:#60a5fa}
-.sd-stat .n{font-size:18px;font-weight:800;line-height:1.2}
-.sd-stat .l{font-size:10px;color:var(--text-dim)}
-.sd-tbl{background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px}
-.sd-tbl table{width:100%;border-collapse:collapse;font-size:12px}
-.sd-tbl th{text-align:left;font-family:var(--mono);font-size:9px;color:var(--text-faint);letter-spacing:.08em;padding:8px 12px;border-bottom:1px solid var(--border-bright);text-transform:uppercase;background:var(--panel);position:sticky;top:0}
-.sd-tbl td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
-.sd-tbl tr:last-child td{border-bottom:none}
-.sd-tbl tr:hover td{background:var(--bg-2)}
-.sd-tbl tr{cursor:pointer}
-.sd-tbl .mono{font-family:var(--mono);font-size:10px;color:var(--text-faint)}
-.sd-tbl .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:10px;font-size:9px;font-weight:600;font-family:var(--mono)}
-.sd-tbl .badge.ban{background:#2d0a0a;color:var(--danger);border:1px solid #7f1d1d}
-.sd-tbl .badge.kick{background:#2d1f0a;color:var(--amber);border:1px solid #7f5d1d}
-.sd-tbl .badge.warn,.sd-tbl .badge.flag{background:#0a1a2d;color:#60a5fa;border:1px solid #1d3d7f}
-.sd-empty{text-align:center;color:var(--text-dim);padding:24px 0;font-size:12px}
-.sd-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
-.sd-bar .srch{flex:1;min-width:140px;display:flex;align-items:center;gap:6px;background:var(--bg-2);border:1px solid var(--border);border-radius:6px;padding:6px 10px}
-.sd-bar .srch input{flex:1;background:none;border:none;color:var(--text);font-size:12px;outline:none;font-family:var(--sans)}
-.sd-bar .srch svg{width:12px;height:12px;color:var(--text-dim);flex:none}
-.sd-tog{position:relative;width:34px;height:18px;background:var(--border-bright);border-radius:9px;cursor:pointer;transition:.15s;flex:none}
-.sd-tog.on{background:var(--brand)}
-.sd-tog::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:.15s}
-.sd-tog.on::after{left:18px}
-.sd-grp{margin-bottom:14px}
-.sd-grp h3{font-size:12px;color:var(--text-dim);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border);font-weight:600}
-.sd-row{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:var(--panel);border:1px solid var(--border);border-radius:6px;margin-bottom:4px}
-.sd-row .lb{font-size:12px}
-.sd-row .ds{font-size:10px;color:var(--text-dim);margin-top:1px}
-.sd-row .vl{font-family:var(--mono);font-size:11px;color:var(--brand);background:var(--brand-dim);padding:2px 7px;border-radius:4px}
-.sd-btn{padding:5px 10px;font-size:10px;border-radius:5px;cursor:pointer;font-family:var(--mono);font-weight:600;transition:.1s;border:1px solid var(--border);background:transparent;color:var(--text-dim)}
-.sd-btn:hover{border-color:var(--brand);color:var(--brand)}
-.sd-btn.d:hover{border-color:var(--danger);color:var(--danger);background:#ef444411}
-
-/* Slide-in player panel */
-.sd-overlay{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.5);backdrop-filter:blur(2px);opacity:0;visibility:hidden;transition:.2s}
-.sd-overlay.open{opacity:1;visibility:visible}
-.sd-panel{position:fixed;top:0;right:-420px;width:400px;height:100%;z-index:9999;background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;transition:.25s cubic-bezier(.4,0,.2,1)}
-.sd-panel.open{right:0}
-.sd-phead{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border)}
-.sd-phead h3{font-size:15px}
-.sd-phead button{background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;padding:4px}
-.sd-phead button:hover{color:var(--text)}
-.sd-pbody{flex:1;overflow-y:auto;padding:16px 18px}
-.sd-pinfo{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;font-size:12px}
-.sd-pinfo div span:first-child{color:var(--text-dim);font-size:10px;display:block;margin-bottom:1px}
-.sd-pinfo .mono{font-size:11px;word-break:break-all;font-family:var(--mono)}
-.sd-pacts{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.sd-pacts button{padding:9px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:none;transition:.1s;text-align:center}
-.sd-pacts button:active{transform:scale(.97)}
-.sd-pacts .b-ban{background:var(--danger);color:#fff}
-.sd-pacts .b-ban:hover{filter:brightness(1.15)}
-.sd-pacts .b-kick{background:var(--amber);color:#000}
-.sd-pacts .b-kick:hover{filter:brightness(1.1)}
-.sd-pacts .b-warn{background:#3b82f6;color:#fff}
-.sd-pacts .b-spectate{background:var(--text-dim);color:#fff}
-.sd-pacts .b-wipe{background:#7c3aed;color:#fff}
-.sd-pmsg{margin-top:12px;font-size:11px;text-align:center;color:var(--text-dim)}
-
+.sd-top h2{font-size:19px}
+.sd-top .sub{color:var(--text-dim);font-size:12px}
+.sd-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+.sd-card{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:14px 16px}
+.sd-card .ch{display:flex;align-items:center;gap:6px;color:var(--text-dim);font-size:10px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.sd-card .big{font-size:22px;font-weight:800}
+.sd-card .sub{color:var(--text-dim);font-size:11px;margin-top:2px}
+.sd-table-wrap{background:var(--panel);border:1px solid var(--border);border-radius:9px;overflow:hidden;margin-bottom:14px}
+.sd-table{width:100%;border-collapse:collapse;font-size:12px}
+.sd-table th{text-align:left;font-family:var(--mono);font-size:10px;color:var(--text-faint);
+  letter-spacing:.08em;padding:9px 12px;border-bottom:1px solid var(--border-bright);text-transform:uppercase}
+.sd-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.sd-table tr:hover td{background:var(--bg-2)}
+.sd-table .mono{font-family:var(--mono);font-size:11px;color:var(--text-faint)}
+.sd-empty{text-align:center;color:var(--text-dim);padding:30px 0;font-size:13px}
+.sd-toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.sd-search{flex:1;min-width:160px;display:flex;align-items:center;gap:7px;background:var(--bg-2);
+  border:1px solid var(--border);border-radius:7px;padding:7px 11px}
+.sd-search input{flex:1;background:none;border:none;color:var(--text);font-size:12px;outline:none;font-family:var(--sans)}
+.sd-search svg{width:13px;height:13px;color:var(--text-dim);flex:none}
+.sd-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:14px;font-size:10px;font-weight:600;font-family:var(--mono)}
+.sd-pill.ban{background:#2d0a0a;color:var(--danger);border:1px solid #7f1d1d}
+.sd-pill.kick{background:#2d1f0a;color:var(--amber);border:1px solid #7f5d1d}
+.sd-pill.warn{background:#0a1a2d;color:#60a5fa;border:1px solid #1d3d7f}
+.sd-pill.flag{background:#0a1a2d;color:#60a5fa;border:1px solid #1d3d7f}
+.sd-toggle{position:relative;width:36px;height:20px;background:var(--border-bright);border-radius:10px;cursor:pointer;transition:.15s;flex:none}
+.sd-toggle.on{background:var(--brand)}
+.sd-toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s}
+.sd-toggle.on::after{left:18px}
+.sd-config-group{margin-bottom:16px}
+.sd-config-group h3{font-size:13px;color:var(--text-dim);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.sd-config-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;
+  background:var(--panel);border:1px solid var(--border);border-radius:7px;margin-bottom:5px}
+.sd-config-row .lbl{font-size:12px}
+.sd-config-row .desc{font-size:10px;color:var(--text-dim);margin-top:1px}
+.sd-config-row .val{font-family:var(--mono);font-size:11px;color:var(--brand);background:var(--brand-dim);padding:3px 8px;border-radius:5px}
+.sd-act-btn{padding:4px 10px;font-size:10px;border-radius:6px;cursor:pointer;font-family:var(--mono);font-weight:600;transition:.12s;border:1px solid var(--border);background:transparent;color:var(--text-dim)}
+.sd-act-btn:hover{border-color:var(--brand);color:var(--brand)}
+.sd-act-btn.danger:hover{border-color:var(--danger);color:var(--danger);background:#ef444411}
+/* Player Drawer */
+.sd-overlay{position:fixed;inset:0;z-index:199;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:.2s}
+.sd-overlay.open{opacity:1;pointer-events:auto}
+.sd-drawer{position:fixed;top:0;right:0;z-index:200;width:380px;height:100vh;background:var(--panel);border-left:1px solid var(--border);transform:translateX(100%);transition:transform .25s ease;display:flex;flex-direction:column;max-width:100vw}
+.sd-drawer.open{transform:none}
+.sd-drawer-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border);background:var(--bg-2)}
+.sd-drawer-head h3{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sd-drawer-body{flex:1;overflow-y:auto;padding:14px}
+/* Map */
+.map-player:hover{background:var(--bg-2)}
+.map-player.active{background:var(--brand-dim);border-color:var(--brand)}
+/* Stream */
+.stream-cell:hover{border-color:var(--border-bright)!important}
+.stream-cell .live-tag{position:absolute;top:6px;right:6px}
 @media(max-width:768px){
-  .sd-wrap{flex-direction:column}
-  .sd-aside{width:100%;position:static;height:auto;border-right:none;border-bottom:1px solid var(--border);flex-direction:row;flex-wrap:wrap;padding:6px}
-  .sd-srv{display:none}
-  .sd-nav{display:flex;gap:2px;padding:0;overflow-x:auto}
-  .sd-nav a{white-space:nowrap;font-size:11px;padding:5px 8px}
-  .sd-foot{display:none}
-  .sd-body{padding:12px}
-  .sd-panel{width:100%;right:-100%}
+  .sd-layout{flex-direction:column}
+  .sd-sidebar{width:100%;position:static;height:auto;border-right:none;border-bottom:1px solid var(--border);padding:10px;flex-direction:row;flex-wrap:wrap;gap:3px}
+  .sd-sinfo{display:none}
+  .sd-nav{font-size:12px;padding:5px 9px}
+  .sd-main{padding:12px}
+  .sd-stats{grid-template-columns:repeat(2,1fr)}
+  #tab-map div[style*="grid-template-columns:1fr 280px"]{grid-template-columns:1fr!important}
+  .sd-drawer{width:100vw}
+  #tab-lookup > div{grid-template-columns:1fr!important}
 }
 </style>
 {% endblock %}
 {% block content %}
 
-<div class="sd-wrap">
-  <aside class="sd-aside">
-    <div class="sd-srv">
-      <div class="dot {{ 'on' if server_online else 'off' }}"></div>
-      <div><b>{{ server_name or 'DEV STUDIO AC' }}</b><small>{{ 'Online' if server_online else 'Offline' }}</small></div>
+<div class="sd-layout">
+  <aside class="sd-sidebar">
+    <div class="sd-sinfo">
+      <div class="dot {{ 'online' if server_online else 'offline' }}"></div>
+      <div><b>{{ server_name or 'DEVSTUDIO' }}</b><small>{{ 'Online' if server_online else 'Offline' }}</small></div>
     </div>
-    <nav class="sd-nav">
-      <a class="active" data-tab="dashboard" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
-      <a data-tab="players" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Players</a>
-      <a data-tab="bans" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Bans</a>
-      <a data-tab="config" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Config</a>
-      <a data-tab="logs" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Logs</a>
-      <a data-tab="admins" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Admins</a>
-      <div class="spacer"></div>
-      <a href="{{ url_for('dashboard') }}" style="opacity:.5">&#8592; Back</a>
-    </nav>
-    <div class="sd-foot"><div class="dot"></div>{{ server_id }}</div>
+    <div class="sd-nav active" data-tab="dashboard">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
+    </div>
+    <div class="sd-nav" data-tab="players">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Players
+    </div>
+    <div class="sd-nav" data-tab="map">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>Map
+    </div>
+    <div class="sd-nav" data-tab="multistream">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Multistream
+    </div>
+    <div class="sd-nav" data-tab="bans">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Bans
+    </div>
+    <div class="sd-nav" data-tab="lookup">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="M11 8v3l2 1"/></svg>Lookup
+    </div>
+    <div class="sd-nav" data-tab="admins">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Admins
+    </div>
+    <div class="sd-nav" data-tab="logs">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Logs
+    </div>
+    <div class="sd-nav" data-tab="console">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>Console
+    </div>
+    <div class="sd-nav" data-tab="config">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Config
+    </div>
+    <div class="sd-spacer"></div>
+    <a class="sd-nav" href="{{ url_for('dashboard') }}" style="text-decoration:none">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back
+    </a>
   </aside>
 
-  <main class="sd-body">
+  <main class="sd-main">
 
-    <!-- DASHBOARD -->
+    <!-- ===== DASHBOARD ===== -->
     <div class="sd-page active" id="tab-dashboard">
       <div class="sd-top"><div><h2>Server <span style="color:var(--brand)">Dashboard</span></h2><div class="sub">{{ server_id }} · real-time</div></div></div>
-      <div class="sd-grid">
-        <div class="sd-stat"><div class="ic g">&#9679;</div><div><div class="n" id="stat-online" style="color:var(--good)">{{ stats.online or 0 }}</div><div class="l">Players Online</div></div></div>
-        <div class="sd-stat"><div class="ic b">&#128101;</div><div><div class="n" id="stat-staff">{{ stats.staff_online or 0 }}</div><div class="l">Staff Online</div></div></div>
-        <div class="sd-stat"><div class="ic r">&#128683;</div><div><div class="n" id="stat-bans" style="color:var(--danger)">{{ stats.total_bans or 0 }}</div><div class="l">Total Bans</div></div></div>
-        <div class="sd-stat"><div class="ic b">&#9201;</div><div><div class="n" id="stat-uptime">{{ stats.uptime or '0h' }}</div><div class="l">Uptime</div></div></div>
+      <div class="sd-stats">
+        <div class="sd-card"><div class="ch">Players Online</div><div class="big" id="stat-online" style="color:var(--good)">{{ stats.online or 0 }}</div><div class="sub">Currently connected</div></div>
+        <div class="sd-card"><div class="ch">Staff Online</div><div class="big" id="stat-staff">{{ stats.staff_online or 0 }}</div><div class="sub">With admin perms</div></div>
+        <div class="sd-card"><div class="ch">Total Bans</div><div class="big" id="stat-bans" style="color:var(--danger)">{{ stats.total_bans or 0 }}</div><div class="sub">All time</div></div>
+        <div class="sd-card"><div class="ch">Uptime</div><div class="big" id="stat-uptime">{{ stats.uptime or '0h' }}</div><div class="sub">Server running</div></div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="sd-tbl"><div style="padding:10px 12px;font-size:10px;text-transform:uppercase;color:var(--text-dim);letter-spacing:.08em;border-bottom:1px solid var(--border)">Recent Bans</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="sd-card"><div class="ch">Recent Bans</div>
           <div id="recent-bans">
-            {% if recent_bans %}{% for b in recent_bans[:4] %}
-            <div style="display:flex;justify-content:space-between;padding:7px 12px;border-bottom:1px solid var(--border);font-size:11px"><span>{{ b.player_name or 'Unknown' }}</span><span class="badge {{ b.category }}">{{ b.category }}</span></div>
-            {% endfor %}{% else %}<div class="sd-empty">No bans yet</div>{% endif %}
+            {% if recent_bans %}
+            {% for b in recent_bans[:5] %}
+            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px">
+              <span>{{ b.player_name or 'Unknown' }}</span>
+              <span class="sd-pill {{ b.category }}">{{ b.category }}</span>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="sd-empty" style="padding:16px 0">No bans yet</div>
+            {% endif %}
           </div>
         </div>
-        <div class="sd-tbl"><div style="padding:10px 12px;font-size:10px;text-transform:uppercase;color:var(--text-dim);letter-spacing:.08em;border-bottom:1px solid var(--border)">Detection Activity</div>
+        <div class="sd-card"><div class="ch">Detection Activity</div>
           <div id="recent-logs">
-            {% if recent_logs %}{% for log in recent_logs[:4] %}
-            <div style="display:flex;justify-content:space-between;padding:7px 12px;border-bottom:1px solid var(--border);font-size:11px"><span>{{ log.player_name or 'Unknown' }}</span><span class="badge {{ log.action }}">{{ log.action }}</span></div>
-            {% endfor %}{% else %}<div class="sd-empty">No detections yet</div>{% endif %}
+            {% if recent_logs %}
+            {% for log in recent_logs[:5] %}
+            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px">
+              <span>{{ log.player_name or 'Unknown' }}</span>
+              <span class="sd-pill {{ log.action }}">{{ log.action }}</span>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="sd-empty" style="padding:16px 0">No detections yet</div>
+            {% endif %}
           </div>
         </div>
       </div>
     </div>
 
-    <!-- PLAYERS -->
+    <!-- ===== PLAYERS ===== -->
     <div class="sd-page" id="tab-players">
       <div class="sd-top"><div><h2>Players</h2><div class="sub">Connected players &amp; identifiers</div></div></div>
-      <div class="sd-bar">
-        <div class="srch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" id="playerSearch" placeholder="Search..." oninput="filterTable('playerTable',this.value)"></div>
+      <div class="sd-toolbar">
+        <div class="sd-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" id="playerSearch" placeholder="Search by name, ID, or identifier..." oninput="filterTable('playerTable',this.value)"></div>
       </div>
-      <div class="sd-tbl">
-        <table id="playerTable">
-          <thead><tr><th>ID</th><th>Name</th><th>Steam</th><th>IP</th><th>License</th><th>Playtime</th><th></th></tr></thead>
+      <div class="sd-table-wrap">
+        <table class="sd-table" id="playerTable">
+          <thead><tr><th>ID</th><th>Name</th><th>Steam</th><th>IP</th><th>License</th><th>Discord</th><th>Playtime</th><th>Actions</th></tr></thead>
           <tbody id="players-body">
             {% if players %}
             {% for p in players %}
             <tr>
-              <td class="mono" onclick="openPanel({{ p.id }},'{{ p.name|e }}','{{ p.steam or '' }}','{{ p.ip or '' }}','{{ p.license or '' }}','{{ p.discord or '' }}','{{ p.playtime or '0m' }}')">{{ p.id }}</td>
-              <td onclick="openPanel({{ p.id }},'{{ p.name|e }}','{{ p.steam or '' }}','{{ p.ip or '' }}','{{ p.license or '' }}','{{ p.discord or '' }}','{{ p.playtime or '0m' }}')"><strong>{{ p.name }}</strong></td>
-              <td class="mono">{{ p.steam[:14] if p.steam else '-' }}{% if p.steam and p.steam|length > 14 %}..{% endif %}</td>
+              <td class="mono">{{ p.id }}</td>
+              <td><strong>{{ p.name }}</strong></td>
+              <td class="mono">{{ p.steam[:16] if p.steam else '-' }}{% if p.steam and p.steam|length > 16 %}...{% endif %}</td>
               <td class="mono">{{ p.ip }}</td>
-              <td class="mono">{{ p.license[:16] if p.license else '-' }}{% if p.license and p.license|length > 16 %}..{% endif %}</td>
+              <td class="mono">{{ p.license[:20] if p.license else '-' }}{% if p.license and p.license|length > 20 %}...{% endif %}</td>
+              <td class="mono">{{ p.discord[:18] if p.discord else '-' }}{% if p.discord and p.discord|length > 18 %}...{% endif %}</td>
               <td class="mono">{{ p.playtime or '0m' }}</td>
               <td style="white-space:nowrap">
-                <button class="sd-btn" onclick="event.stopPropagation();banPlayer('{{ p.id }}','{{ p.name|e }}')">Ban</button>
-                <button class="sd-btn d" onclick="event.stopPropagation();kickPlayer('{{ p.id }}','{{ p.name|e }}')">Kick</button>
+                <button class="sd-act-btn" onclick="banPlayer('{{ p.id }}','{{ p.name|e }}')">Ban</button>
+                <button class="sd-act-btn danger" onclick="kickPlayer('{{ p.id }}','{{ p.name|e }}')">Kick</button>
               </td>
             </tr>
             {% endfor %}
             {% else %}
-            <tr><td colspan="7" class="sd-empty" style="padding:24px">No players online</td></tr>
+            <tr><td colspan="8" class="sd-empty" style="padding:24px">No players online</td></tr>
             {% endif %}
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- BANS -->
+    <!-- ===== MAP ===== -->
+    <div class="sd-page" id="tab-map">
+      <div class="sd-top"><div><h2>Mappa <span style="color:var(--brand)">Live</span></h2><div class="sub">Posizioni giocatori in tempo reale</div></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="sd-pill" style="background:#052e16;color:var(--good);border-color:#166534"><span style="width:6px;height:6px;border-radius:50%;background:var(--good);display:inline-block"></span> {{ stats.online or 0 }} players</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 280px;gap:12px">
+        <div style="background:var(--panel);border:1px solid var(--border);border-radius:9px;overflow:hidden;position:relative">
+          <canvas id="mapCanvas" style="width:100%;height:480px;display:block;background:#0a0a0a"></canvas>
+          <div style="position:absolute;bottom:10px;left:10px;display:flex;gap:4px">
+            <button class="sd-act-btn" onclick="mapZoom(1)" style="padding:3px 8px;font-size:12px">+</button>
+            <button class="sd-act-btn" onclick="mapZoom(-1)" style="padding:3px 8px;font-size:12px">−</button>
+          </div>
+        </div>
+        <div style="background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:12px;overflow-y:auto;max-height:480px">
+          <div class="ch" style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px">Player List</div>
+          <div id="mapPlayerList">
+            {% if players %}
+            {% for p in players %}
+            <div class="map-player" data-pid="{{ p.id }}" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:11px;transition:.1s;border-bottom:1px solid var(--border)">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--good)"></span>
+              <span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.name }}</span>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="sd-empty" style="padding:12px">Nessun giocatore connesso</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MULTISTREAM ===== -->
+    <div class="sd-page" id="tab-multistream">
+      <div class="sd-top"><div><h2>Multi <span style="color:var(--brand)">Stream</span></h2><div class="sub">Sorveglianza giocatori in tempo reale</div></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <select id="streamGridSize" onchange="rebuildStreamGrid()" style="background:var(--bg-2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:11px;font-family:var(--mono);outline:none">
+            <option value="4">4x4</option><option value="3" selected>3x3</option><option value="2">2x2</option>
+          </select>
+        </div>
+      </div>
+      <div id="streamGrid" class="stream-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        {% if players %}
+        {% for p in players[:9] %}
+        <div class="stream-cell" style="background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden;position:relative;aspect-ratio:16/9">
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#060606">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="var(--text-faint)" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span style="font-size:11px;color:var(--text-dim);margin-top:6px">{{ p.name }}</span>
+            <span style="font-size:9px;color:var(--text-faint);font-family:var(--mono)">ID: {{ p.id }}</span>
+          </div>
+          <div style="position:absolute;top:6px;right:6px;display:flex;gap:4px">
+            <span class="sd-pill" style="background:#cc000020;color:var(--brand);border-color:rgba(204,0,0,.3);font-size:8px;padding:2px 6px">LIVE</span>
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        {% for i in range(6) %}
+        <div class="stream-cell" style="background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden;position:relative;aspect-ratio:16/9">
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#060606">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="var(--text-faint)" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span style="font-size:11px;color:var(--text-dim);margin-top:6px">In attesa...</span>
+          </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ===== BANS ===== -->
     <div class="sd-page" id="tab-bans">
       <div class="sd-top"><div><h2>Ban <span style="color:var(--brand)">List</span></h2><div class="sub">All banned players</div></div></div>
-      <div class="sd-bar"><div class="srch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Search bans..." oninput="filterTable('banTable',this.value)"></div></div>
-      <div class="sd-tbl">
-        <table id="banTable">
-          <thead><tr><th>ID</th><th>Player</th><th>Reason</th><th>Type</th><th>Steam</th><th>Date</th><th></th></tr></thead>
+      <div class="sd-toolbar">
+        <div class="sd-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" id="banSearch" placeholder="Search bans..." oninput="filterTable('banTable',this.value)"></div>
+      </div>
+      <div class="sd-table-wrap">
+        <table class="sd-table" id="banTable">
+          <thead><tr><th>ID</th><th>Player</th><th>Reason</th><th>Category</th><th>Steam</th><th>IP</th><th>Date</th><th></th></tr></thead>
           <tbody>
             {% if bans %}
             {% for b in bans %}
             <tr>
               <td class="mono">#{{ b.ban_id }}</td>
               <td><strong>{{ b.player_name or 'Unknown' }}</strong></td>
-              <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ b.reason }}</td>
-              <td><span class="badge {{ b.category }}">{{ b.category }}</span></td>
-              <td class="mono">{{ b.steam[:14] if b.steam else '-' }}{% if b.steam and b.steam|length > 14 %}..{% endif %}</td>
-              <td class="mono" style="font-size:9px">{{ b.banned_at.strftime('%Y-%m-%d') if b.banned_at else '-' }}</td>
-              <td><button class="sd-btn d" style="font-size:9px;padding:3px 7px" onclick="unban('{{ b.id }}')">Unban</button></td>
+              <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ b.reason }}</td>
+              <td><span class="sd-pill {{ b.category }}">{{ b.category }}</span></td>
+              <td class="mono">{{ b.steam[:16] if b.steam else '-' }}{% if b.steam and b.steam|length > 16 %}...{% endif %}</td>
+              <td class="mono">{{ b.ip }}</td>
+              <td class="mono" style="font-size:10px">{{ b.banned_at.strftime('%Y-%m-%d') if b.banned_at else '-' }}</td>
+              <td>
+                <button class="sd-act-btn danger" style="font-size:10px;padding:3px 8px" onclick="unban('{{ b.id }}')">Unban</button>
+              </td>
             </tr>
             {% endfor %}
             {% else %}
-            <tr><td colspan="7" class="sd-empty" style="padding:24px">No bans recorded</td></tr>
+            <tr><td colspan="8" class="sd-empty" style="padding:24px">No bans recorded</td></tr>
             {% endif %}
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- CONFIG -->
+    <!-- ===== LOOKUP ===== -->
+    <div class="sd-page" id="tab-lookup">
+      <div class="sd-top"><div><h2>Player <span style="color:var(--brand)">Lookup</span></h2><div class="sub">Cerca giocatori per identifier</div></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <div class="sd-toolbar" style="margin-bottom:0">
+            <div class="sd-search" style="flex:1">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="lookupInput" placeholder="steam:..., license:..., ip:..., discord:..." style="font-size:11px">
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="doLookup()">Cerca</button>
+          </div>
+          <div id="lookupResults" class="sd-table-wrap" style="display:none">
+            <table class="sd-table">
+              <thead><tr><th>Field</th><th>Value</th></tr></thead>
+              <tbody id="lookupBody"></tbody>
+            </table>
+          </div>
+          <div id="lookupEmpty" class="sd-empty" style="padding:40px 0">
+            <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--text-faint)" stroke-width="1.5" style="margin-bottom:10px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <div>Inserisci un identifier per cercare<br><span style="font-size:11px;color:var(--text-faint)">es. steam:110000..., license:abc123...</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="sd-card" style="margin-bottom:10px">
+            <div class="ch">Ban History</div>
+            <div id="lookupBanHistory" style="font-size:12px;color:var(--text-dim);padding:8px 0">Seleziona un risultato per vedere la cronologia</div>
+          </div>
+          <div class="sd-card">
+            <div class="ch">Quick Actions</div>
+            <div id="lookupActions" style="padding:8px 0;display:flex;gap:6px;flex-wrap:wrap">
+              <span style="font-size:12px;color:var(--text-faint)">Nessun player selezionato</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== CONFIG ===== -->
     <div class="sd-page" id="tab-config">
-      <div class="sd-top"><div><h2>Configuration</h2><div class="sub">Remote anticheat settings</div><button class="btn btn-primary btn-sm" onclick="saveConfig()">Save</button></div></div>
+      <div class="sd-top"><div><h2>Configuration</h2><div class="sub">Remote anticheat settings</div><button class="btn btn-primary btn-sm" onclick="saveConfig()">Save Changes</button></div></div>
       <form id="configForm">
       {% for group, items in config_groups.items() %}
-      <div class="sd-grp"><h3>{{ group }}</h3>
+      <div class="sd-config-group">
+        <h3>{{ group }}</h3>
         {% for key, cfg in items.items() %}
-        <div class="sd-row">
-          <div><div class="lb">{{ cfg.label }}</div><div class="ds">{{ cfg.desc }}</div></div>
+        <div class="sd-config-row">
+          <div><div class="lbl">{{ cfg.label }}</div><div class="desc">{{ cfg.desc }}</div></div>
           {% if cfg.type == 'toggle' %}
-          <div class="sd-tog {{ 'on' if cfg.value else '' }}" data-key="{{ key }}" onclick="this.classList.toggle('on')"></div>
+          <div class="sd-toggle {{ 'on' if cfg.value else '' }}" data-key="{{ key }}" onclick="toggleConfig(this)"></div>
           {% elif cfg.type == 'number' %}
-          <span class="vl">{{ cfg.value }}</span>
+          <span class="val">{{ cfg.value }}</span>
           {% else %}
-          <span class="vl">{{ cfg.value }}</span>
+          <span class="val">{{ cfg.value }}</span>
           {% endif %}
         </div>
         {% endfor %}
@@ -237,25 +375,27 @@
       </form>
     </div>
 
-    <!-- LOGS -->
+    <!-- ===== LOGS ===== -->
     <div class="sd-page" id="tab-logs">
       <div class="sd-top"><div><h2>Detection <span style="color:var(--brand)">Logs</span></h2><div class="sub">Recent anticheat activity</div></div>
-        <select onchange="filterLogs(this.value)" style="background:var(--bg-2);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:5px;font-size:10px;font-family:var(--mono);outline:none">
-          <option value="all">All</option><option value="ban">Bans</option><option value="kick">Kicks</option><option value="warn">Warnings</option><option value="flag">Flags</option>
-        </select>
+        <div style="display:flex;gap:6px">
+          <select id="logFilter" onchange="filterLogs()" style="background:var(--bg-2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:11px;font-family:var(--mono);outline:none">
+            <option value="all">All</option><option value="ban">Bans</option><option value="kick">Kicks</option><option value="warn">Warnings</option><option value="flag">Flags</option>
+          </select>
+        </div>
       </div>
-      <div class="sd-tbl">
-        <table id="logTable">
+      <div class="sd-table-wrap">
+        <table class="sd-table" id="logTable">
           <thead><tr><th>Time</th><th>Player</th><th>Action</th><th>Reason</th><th>Detections</th></tr></thead>
           <tbody id="logs-body">
             {% if recent_logs %}
             {% for log in recent_logs %}
             <tr class="log-row" data-action="{{ log.action }}">
-              <td class="mono" style="font-size:9px;white-space:nowrap">{{ log.created_at.strftime('%H:%M') if log.created_at else '-' }}</td>
+              <td class="mono" style="font-size:10px;white-space:nowrap">{{ log.created_at.strftime('%H:%M') if log.created_at else '-' }}</td>
               <td><strong>{{ log.player_name }}</strong></td>
-              <td><span class="badge {{ log.action }}">{{ log.action }}</span></td>
-              <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ log.reason }}</td>
-              <td class="mono">{{ log.detections or '-' }}</td>
+              <td><span class="sd-pill {{ log.action }}">{{ log.action }}</span></td>
+              <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ log.reason }}</td>
+              <td class="mono" style="font-size:11px">{{ log.detections or '-' }}</td>
             </tr>
             {% endfor %}
             {% else %}
@@ -266,15 +406,53 @@
       </div>
     </div>
 
-    <!-- ADMINS -->
+    <!-- ===== CONSOLE ===== -->
+    <div class="sd-page" id="tab-console">
+      <div class="sd-top"><div><h2>Server <span style="color:var(--brand)">Console</span></h2><div class="sub">Terminale live del server</div></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="sd-act-btn" onclick="clearConsole()" style="font-size:10px">Clear</button>
+          <span class="sd-pill" style="background:#cc000020;color:var(--brand);border-color:rgba(204,0,0,.3)"><span style="width:6px;height:6px;border-radius:50%;background:var(--brand);display:inline-block;animation:pulse 1s infinite"></span> LIVE</span>
+        </div>
+      </div>
+      <div style="background:#000;border:1px solid var(--border);border-radius:9px;overflow:hidden;font-family:var(--mono)">
+        <div id="consoleOutput" style="height:420px;overflow-y:auto;padding:14px;font-size:12px;line-height:1.7;background:#050505">
+          <div class="term-line" style="opacity:1;color:var(--text-dim)"><span class="term-ts">--:--:--</span> ⚡ Server console initialized</div>
+          <div class="term-line" style="opacity:1;color:var(--text-dim)"><span class="term-ts">--:--:--</span> 🔗 Connected to dashboard</div>
+          <div class="term-line" style="opacity:1;color:var(--good)"><span class="term-ts">--:--:--</span> ✓ Anticheat module ready</div>
+          {% if recent_logs %}
+          {% for log in recent_logs[:20] %}
+          <div class="term-line log-entry" style="opacity:1;color:{{ 'var(--danger)' if log.action == 'ban' else 'var(--amber)' if log.action == 'kick' else 'var(--text-dim)' }}">
+            [{{ log.created_at.strftime('%H:%M:%S') if log.created_at else '--:--:--' }}] {{ log.action|upper }} — {{ log.reason }} ({{ log.player_name }})
+          </div>
+          {% endfor %}
+          {% endif %}
+          <div id="consoleCursor">▋</div>
+        </div>
+        <div style="display:flex;border-top:1px solid var(--border);background:var(--bg-2)">
+          <span style="padding:9px 12px;color:var(--brand);font-size:12px;font-family:var(--mono);border-right:1px solid var(--border);background:var(--panel)">$</span>
+          <input type="text" id="consoleInput" placeholder="Type a command..." style="flex:1;background:none;border:none;color:var(--text);padding:9px 12px;font-family:var(--mono);font-size:12px;outline:none"
+            onkeydown="if(event.key==='Enter')executeConsoleCmd()">
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ADMINS ===== -->
     <div class="sd-page" id="tab-admins">
-      <div class="sd-top"><div><h2>Administrators</h2><div class="sub">Staff permissions</div></div></div>
-      <div class="sd-tbl">
-        <table><thead><tr><th>ID</th><th>Name</th><th>Permission</th><th>Status</th></tr></thead>
+      <div class="sd-top"><div><h2>Administrators</h2><div class="sub">Manage staff permissions</div></div></div>
+      <div class="sd-table-wrap">
+        <table class="sd-table">
+          <thead><tr><th>ID</th><th>Name</th><th>Permission</th><th>Status</th></tr></thead>
           <tbody>
-            {% if admins %}{% for a in admins %}
-            <tr><td class="mono">{{ a.id }}</td><td><strong>{{ a.name }}</strong></td><td><span class="mono" style="color:var(--brand)">{{ a.ace }}</span></td><td><span class="mono" style="color:{{ 'var(--good)' if a.online else 'var(--text-faint)' }}">{{ 'Online' if a.online else 'Offline' }}</span></td></tr>
-            {% endfor %}{% else %}
+            {% if admins %}
+            {% for a in admins %}
+            <tr>
+              <td class="mono">{{ a.id }}</td>
+              <td><strong>{{ a.name }}</strong></td>
+              <td><span class="mono" style="color:var(--brand)">{{ a.ace }}</span></td>
+              <td><span class="mono" style="color:{{ 'var(--good)' if a.online else 'var(--text-faint)' }}">{{ 'Online' if a.online else 'Offline' }}</span></td>
+            </tr>
+            {% endfor %}
+            {% else %}
             <tr><td colspan="4" class="sd-empty" style="padding:24px">Connect your server to see admins</td></tr>
             {% endif %}
           </tbody>
@@ -283,143 +461,105 @@
     </div>
 
   </main>
-</div>
 
-<!-- Slide-in player panel -->
-<div class="sd-overlay" id="panelOverlay" onclick="closePanel()"></div>
-<div class="sd-panel" id="playerPanel">
-  <div class="sd-phead">
-    <h3 id="panelName">—</h3>
-    <button onclick="closePanel()">&times;</button>
-  </div>
-  <div class="sd-pbody">
-    <div class="sd-pinfo">
-      <div><span>ID</span><span class="mono" id="panelId">—</span></div>
-      <div><span>Steam</span><span class="mono" id="panelSteam">—</span></div>
-      <div><span>IP</span><span class="mono" id="panelIp">—</span></div>
-      <div><span>License</span><span class="mono" id="panelLicense">—</span></div>
-      <div><span>Discord</span><span class="mono" id="panelDiscord">—</span></div>
-      <div><span>Playtime</span><span class="mono" id="panelPlaytime">—</span></div>
+  <!-- ===== PLAYER PANEL (slide-in right drawer) ===== -->
+  <div class="sd-overlay" id="playerOverlay" onclick="closePlayerPanel()"></div>
+  <div class="sd-drawer" id="playerDrawer">
+    <div class="sd-drawer-head">
+      <h3 id="drawerPlayerName">Player</h3>
+      <button class="sd-act-btn" onclick="closePlayerPanel()" style="font-size:14px;padding:2px 8px">&times;</button>
     </div>
-    <div class="sd-pacts">
-      <button class="b-ban" onclick="panelAction('ban')">&#128680; Ban</button>
-      <button class="b-kick" onclick="panelAction('kick')">&#128682; Kick</button>
-      <button class="b-warn" onclick="panelAction('warn')">&#128220; Warn</button>
-      <button class="b-spectate" onclick="panelAction('spectate')">&#128065; Spectate</button>
-      <button class="b-wipe" onclick="panelAction('wipe')" style="grid-column:1/-1">&#128465; Wipe Entities</button>
+    <div class="sd-drawer-body">
+      <div class="sd-card" style="margin-bottom:8px">
+        <div class="ch">Identifiers</div>
+        <div id="drawerIdentifiers" style="font-size:11px;font-family:var(--mono);padding:6px 0">
+          <div style="padding:3px 0;color:var(--text-dim)">ID: <span id="drawerPid" style="color:var(--text)">-</span></div>
+          <div style="padding:3px 0;color:var(--text-dim)">Steam: <span id="drawerSteam" style="color:var(--text)">-</span></div>
+          <div style="padding:3px 0;color:var(--text-dim)">IP: <span id="drawerIp" style="color:var(--text)">-</span></div>
+          <div style="padding:3px 0;color:var(--text-dim)">License: <span id="drawerLicense" style="color:var(--text)">-</span></div>
+          <div style="padding:3px 0;color:var(--text-dim)">Discord: <span id="drawerDiscord" style="color:var(--text)">-</span></div>
+          <div style="padding:3px 0;color:var(--text-dim)">XBL: <span id="drawerXbl" style="color:var(--text)">-</span></div>
+          <div style="padding:3px 0;color:var(--text-dim)">Live: <span id="drawerLive" style="color:var(--text)">-</span></div>
+          <div style="padding:3px 0;color:var(--text-dim)">Playtime: <span id="drawerPlaytime" style="color:var(--text)">-</span></div>
+        </div>
+      </div>
+      <div class="sd-card" style="margin-bottom:8px">
+        <div class="ch">Actions</div>
+        <div style="display:flex;gap:6px;padding:8px 0;flex-wrap:wrap">
+          <button class="btn btn-sm btn-primary" id="drawerBanBtn" onclick="drawerBan()">Ban</button>
+          <button class="btn btn-sm" id="drawerKickBtn" onclick="drawerKick()" style="color:var(--amber);border-color:var(--amber)">Kick</button>
+          <button class="btn btn-sm" id="drawerSpectateBtn" onclick="drawerSpectate()" style="color:#60a5fa;border-color:#1d3d7f">Spectate</button>
+          <button class="btn btn-sm" id="drawerTeleportBtn" onclick="drawerTeleport()" style="color:#a855f7;border-color:#581c87">Teleport</button>
+        </div>
+      </div>
+      <div class="sd-card">
+        <div class="ch">Ban History</div>
+        <div id="drawerBanHistory" style="font-size:12px;padding:6px 0">
+          <div class="sd-empty" style="padding:12px">No ban history</div>
+        </div>
+      </div>
     </div>
-    <div class="sd-pmsg" id="panelMsg"></div>
   </div>
 </div>
 
 <script>
-var _sel = null;
-function openPanel(id, name, steam, ip, license, discord, playtime){
-  _sel = {id:id, name:name};
-  document.getElementById('panelName').textContent = name;
-  document.getElementById('panelId').textContent = id;
-  document.getElementById('panelSteam').textContent = steam;
-  document.getElementById('panelIp').textContent = ip;
-  document.getElementById('panelLicense').textContent = license;
-  document.getElementById('panelDiscord').textContent = discord;
-  document.getElementById('panelPlaytime').textContent = playtime;
-  document.getElementById('playerPanel').classList.add('open');
-  document.getElementById('panelOverlay').classList.add('open');
-  document.getElementById('panelMsg').textContent = '';
-}
-function closePanel(){
-  document.getElementById('playerPanel').classList.remove('open');
-  document.getElementById('panelOverlay').classList.remove('open');
-}
-function panelAction(action){
-  if(!_sel) return;
-  var msg = document.getElementById('panelMsg');
-  if(action==='ban'){
-    var reason = prompt('Ban reason for ' + _sel.name + ':');
-    if(!reason) return;
-    banPlayer(_sel.id, _sel.name);
-    msg.innerHTML = '&#10003; Ban request sent';
-  } else if(action==='kick'){
-    if(!confirm('Kick ' + _sel.name + '?')) return;
-    kickPlayer(_sel.id, _sel.name);
-    msg.innerHTML = '&#10003; Kick request sent';
-  } else if(action==='warn'){
-    msg.innerHTML = '&#10003; Warning sent';
-  } else if(action==='spectate'){
-    msg.innerHTML = '&#10003; Spectate request sent';
-  } else if(action==='wipe'){
-    if(!confirm('Wipe all entities of ' + _sel.name + '?')) return;
-    msg.innerHTML = '&#10003; Wipe request sent';
-  }
-  msg.style.color = 'var(--good)';
-}
-
-// Tab switching
-document.querySelectorAll('.sd-nav a[data-tab]').forEach(function(el){
-  el.addEventListener('click', function(e){
-    e.preventDefault();
-    document.querySelectorAll('.sd-nav a[data-tab]').forEach(function(x){ x.classList.remove('active'); });
+// ─── Tabs ───
+document.querySelectorAll('.sd-nav[data-tab]').forEach(function(el){
+  el.addEventListener('click', function(){
+    document.querySelectorAll('.sd-nav[data-tab]').forEach(function(x){ x.classList.remove('active'); });
     document.querySelectorAll('.sd-page').forEach(function(x){ x.classList.remove('active'); });
     el.classList.add('active');
     var tab = document.getElementById('tab-' + el.dataset.tab);
     if(tab) tab.classList.add('active');
+    if(el.dataset.tab==='map') initMap();
   });
 });
 
-// Table filter
-function filterTable(tid, v){
-  var q = v.toLowerCase();
-  document.getElementById(tid).querySelectorAll('tbody tr').forEach(function(r){
-    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
-  });
+// ─── Table Search ───
+function filterTable(tableId, val){
+  var rows = document.getElementById(tableId).querySelectorAll('tbody tr');
+  var q = val.toLowerCase();
+  rows.forEach(function(r){ r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none'; });
 }
 
-// Log filter
-function filterLogs(v){
-  document.querySelectorAll('.log-row').forEach(function(r){
-    r.style.display = (v==='all' || r.dataset.action===v) ? '' : 'none';
-  });
-}
+// ─── Config ───
+function toggleConfig(el){ el.classList.toggle('on'); }
 
-// Save config
 function saveConfig(){
   var data = {};
-  document.querySelectorAll('.sd-tog').forEach(function(el){ data[el.dataset.key] = el.classList.contains('on'); });
+  document.querySelectorAll('.sd-toggle').forEach(function(el){ data[el.dataset.key] = el.classList.contains('on'); });
+  document.querySelectorAll('.sd-config-row input[type=number]').forEach(function(el){ data[el.dataset.key] = parseInt(el.value) || 0; });
   fetch('/api/server/{{ server_id }}/config', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify(data)
+    method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)
   }).then(function(r){ return r.json(); }).then(function(j){
     showToast(j.success ? 'Config saved!' : 'Error: ' + (j.error||'unknown'));
   }).catch(function(){ showToast('Connection error'); });
 }
 
-// Ban player
-function banPlayer(id, name){
+// ─── Ban / Kick / Unban ───
+function banPlayer(id, name, cb){
   var reason = prompt('Ban reason for ' + name + ':');
   if(!reason) return;
   fetch('/api/server/{{ server_id }}/ban', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({player_id:id, reason:reason, player_name:name})
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({player_id: id, reason: reason, player_name: name})
   }).then(function(r){ return r.json(); }).then(function(j){
     showToast(j.success ? 'Player banned!' : 'Error');
+    if(cb) cb(j);
   }).catch(function(){ showToast('Connection error'); });
 }
 
-// Kick player
-function kickPlayer(id, name){
+function kickPlayer(id, name, cb){
   if(!confirm('Kick ' + name + '?')) return;
   fetch('/api/server/{{ server_id }}/kick', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({player_id:id, player_name:name})
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({player_id: id, player_name: name})
   }).then(function(r){ return r.json(); }).then(function(j){
     showToast(j.success ? 'Player kicked!' : 'Error');
+    if(cb) cb(j);
   }).catch(function(){ showToast('Connection error'); });
 }
 
-// Unban
 function unban(bid){
   if(!confirm('Unban this player?')) return;
   fetch('/api/server/{{ server_id }}/unban/' + bid, { method:'POST' })
@@ -428,5 +568,276 @@ function unban(bid){
     if(j.success) setTimeout(function(){ location.reload(); }, 600);
   }).catch(function(){ showToast('Connection error'); });
 }
+
+// ─── Log Filter ───
+function filterLogs(){
+  var val = document.getElementById('logFilter').value;
+  document.querySelectorAll('.log-row').forEach(function(r){
+    r.style.display = (val === 'all' || r.dataset.action === val) ? '' : 'none';
+  });
+}
+
+// ─── Player Drawer ───
+var _drawerPlayer = null;
+
+function openPlayerPanel(el){
+  var row = el.closest('tr');
+  if(!row) return;
+  var cells = row.querySelectorAll('td');
+  _drawerPlayer = {
+    id: cells[0] ? cells[0].textContent.trim() : '-',
+    name: cells[1] ? cells[1].textContent.trim() : '-',
+    steam: cells[2] ? cells[2].textContent.trim() : '-',
+    ip: cells[3] ? cells[3].textContent.trim() : '-',
+    license: cells[4] ? cells[4].textContent.trim() : '-',
+    discord: cells[5] ? cells[5].textContent.trim() : '-',
+    playtime: cells[6] ? cells[6].textContent.trim() : '-'
+  };
+  document.getElementById('drawerPlayerName').textContent = _drawerPlayer.name;
+  document.getElementById('drawerPid').textContent = _drawerPlayer.id;
+  document.getElementById('drawerSteam').textContent = _drawerPlayer.steam;
+  document.getElementById('drawerIp').textContent = _drawerPlayer.ip;
+  document.getElementById('drawerLicense').textContent = _drawerPlayer.license;
+  document.getElementById('drawerDiscord').textContent = _drawerPlayer.discord;
+  document.getElementById('drawerXbl').textContent = '-';
+  document.getElementById('drawerLive').textContent = '-';
+  document.getElementById('drawerPlaytime').textContent = _drawerPlayer.playtime;
+  document.getElementById('playerOverlay').classList.add('open');
+  document.getElementById('playerDrawer').classList.add('open');
+}
+
+function closePlayerPanel(){
+  document.getElementById('playerOverlay').classList.remove('open');
+  document.getElementById('playerDrawer').classList.remove('open');
+}
+
+function drawerBan(){
+  if(!_drawerPlayer) return;
+  banPlayer(_drawerPlayer.id, _drawerPlayer.name, function(){ closePlayerPanel(); });
+}
+
+function drawerKick(){
+  if(!_drawerPlayer) return;
+  kickPlayer(_drawerPlayer.id, _drawerPlayer.name, function(){ closePlayerPanel(); });
+}
+
+function drawerSpectate(){
+  if(!_drawerPlayer) return;
+  showToast('Spectate: ' + _drawerPlayer.name + ' (richiesta inoltrata al server)');
+}
+
+function drawerTeleport(){
+  if(!_drawerPlayer) return;
+  showToast('Teleport to ' + _drawerPlayer.name + ' (richiesta inoltrata al server)');
+}
+
+// Make player rows clickable
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('#playerTable tbody tr').forEach(function(r){
+    r.style.cursor = 'pointer';
+    r.addEventListener('dblclick', function(){ openPlayerPanel(this.querySelector('button')); });
+  });
+});
+
+// ─── Map ───
+var _mapZoom = 1;
+var _mapCtx = null;
+var _mapInitialized = false;
+
+// Simplified GTA V map outline (normalized 0-1)
+var _mapOutline = [
+  {x:0.10,y:0.05},{x:0.25,y:0.02},{x:0.40,y:0.03},{x:0.55,y:0.02},{x:0.70,y:0.04},
+  {x:0.85,y:0.03},{x:0.92,y:0.08},{x:0.95,y:0.15},{x:0.93,y:0.25},{x:0.95,y:0.35},
+  {x:0.92,y:0.45},{x:0.94,y:0.55},{x:0.93,y:0.65},{x:0.95,y:0.75},{x:0.92,y:0.85},
+  {x:0.88,y:0.92},{x:0.80,y:0.95},{x:0.70,y:0.93},{x:0.60,y:0.95},{x:0.50,y:0.93},
+  {x:0.40,y:0.95},{x:0.30,y:0.92},{x:0.20,y:0.95},{x:0.12,y:0.88},{x:0.08,y:0.80},
+  {x:0.06,y:0.70},{x:0.05,y:0.60},{x:0.07,y:0.50},{x:0.05,y:0.40},{x:0.06,y:0.30},
+  {x:0.08,y:0.20},{x:0.10,y:0.12},{x:0.10,y:0.05}
+];
+
+// Demo player positions (normalized 0-1)
+var _demoPositions = [
+  {name:'Marco_Rossi',x:0.35,y:0.40},{name:'Luca_Verde',x:0.55,y:0.30},{name:'Giovanni_Neri',x:0.45,y:0.55},{name:'Francesco_Blu',x:0.30,y:0.70},
+  {name:'Andrea_Gialli',x:0.60,y:0.60},{name:'Stefano_Viola',x:0.50,y:0.45},{name:'Alessandro_Bianchi',x:0.40,y:0.25},{name:'Matteo_Marrone',x:0.70,y:0.40}
+];
+
+function initMap(){
+  if(_mapInitialized) return;
+  _mapInitialized = true;
+  var canvas = document.getElementById('mapCanvas');
+  if(!canvas) return;
+  _mapCtx = canvas.getContext('2d');
+  drawMap();
+}
+
+function drawMap(){
+  var ctx = _mapCtx;
+  if(!ctx) return;
+  var canvas = ctx.canvas;
+  var w = canvas.width = canvas.offsetWidth * 2;
+  var h = canvas.height = canvas.offsetHeight * 2;
+  ctx.scale(1,1);
+  ctx.clearRect(0,0,w,h);
+
+  // Background
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(0,0,w,h);
+
+  // Grid
+  ctx.strokeStyle = '#151515';
+  ctx.lineWidth = 1;
+  var gridStep = 40 * _mapZoom;
+  for(var x=0; x<w; x+=gridStep){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+  for(var y=0; y<h; y+=gridStep){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+
+  // Map outline
+  ctx.strokeStyle = '#222';
+  ctx.lineWidth = 2 * _mapZoom;
+  ctx.beginPath();
+  var cx = w/2, cy = h/2, scale = Math.min(w,h) * 0.42 * _mapZoom;
+  _mapOutline.forEach(function(pt, i){
+    var px = cx + (pt.x - 0.5) * scale;
+    var py = cy + (pt.y - 0.5) * scale;
+    i === 0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+  });
+  ctx.closePath();
+  ctx.stroke();
+  ctx.fillStyle = '#0d0d0d';
+  ctx.fill();
+
+  // Roads (simplified)
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth = 1.5 * _mapZoom;
+  var roads = [[0.2,0.3,0.8,0.3],[0.3,0.2,0.3,0.8],[0.4,0.4,0.7,0.6],[0.6,0.3,0.6,0.7]];
+  roads.forEach(function(r){
+    ctx.beginPath();
+    ctx.moveTo(cx + (r[0]-0.5)*scale, cy + (r[1]-0.5)*scale);
+    ctx.lineTo(cx + (r[2]-0.5)*scale, cy + (r[3]-0.5)*scale);
+    ctx.stroke();
+  });
+
+  // Player dots
+  var players = document.querySelectorAll('#playerTable tbody tr');
+  players.forEach(function(row, idx){
+    var name = row.cells[1] ? row.cells[1].textContent.trim() : 'Player';
+    var pos = _demoPositions[idx % _demoPositions.length];
+    if(!pos) return;
+    var px = cx + (pos.x - 0.5) * scale;
+    var py = cy + (pos.y - 0.5) * scale;
+    // Dot
+    ctx.beginPath();
+    ctx.arc(px, py, 5 * _mapZoom, 0, Math.PI*2);
+    ctx.fillStyle = '#22c55e';
+    ctx.fill();
+    ctx.strokeStyle = '#22c55e44';
+    ctx.lineWidth = 4 * _mapZoom;
+    ctx.stroke();
+    // Label
+    ctx.fillStyle = '#f0f0f0';
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(name, px, py - 10 * _mapZoom);
+  });
+}
+
+function mapZoom(d){
+  _mapZoom = Math.max(0.5, Math.min(4, _mapZoom + d * 0.3));
+  drawMap();
+}
+
+// ─── Multistream ───
+function rebuildStreamGrid(){
+  var sel = document.getElementById('streamGridSize');
+  var cols = parseInt(sel.value) || 3;
+  var grid = document.getElementById('streamGrid');
+  if(grid) grid.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
+}
+
+// ─── Lookup ───
+function doLookup(){
+  var q = document.getElementById('lookupInput').value.trim();
+  if(!q){ showToast('Inserisci un identifier'); return; }
+  var rows = document.querySelectorAll('#playerTable tbody tr');
+  var found = null;
+  rows.forEach(function(row){
+    if(found) return;
+    var txt = row.textContent.toLowerCase();
+    if(txt.includes(q.toLowerCase())){
+      found = row;
+    }
+  });
+  var lookupResults = document.getElementById('lookupResults');
+  var lookupEmpty = document.getElementById('lookupEmpty');
+  if(found){
+    var cells = found.querySelectorAll('td');
+    var data = {
+      'ID': cells[0].textContent.trim(), 'Name': cells[1].textContent.trim(),
+      'Steam': cells[2].textContent.trim(), 'IP': cells[3].textContent.trim(),
+      'License': cells[4].textContent.trim(), 'Discord': cells[5].textContent.trim(),
+      'Playtime': cells[6].textContent.trim()
+    };
+    var body = document.getElementById('lookupBody');
+    body.innerHTML = '';
+    Object.keys(data).forEach(function(k){
+      body.innerHTML += '<tr><td style="font-weight:600;color:var(--text-dim);font-size:11px">' + k + '</td><td class="mono">' + data[k] + '</td></tr>';
+    });
+    lookupResults.style.display = 'block';
+    lookupEmpty.style.display = 'none';
+    document.getElementById('lookupBanHistory').innerHTML = '<div style="padding:8px 0;font-size:12px;color:var(--text-dim)">Nessun ban precedente trovato per questo giocatore</div>';
+    document.getElementById('lookupActions').innerHTML =
+      '<button class="btn btn-sm btn-primary" onclick="banPlayer(' + data['ID'] + ',\'' + data['Name'] + '\')">Ban</button>' +
+      '<button class="btn btn-sm" style="color:var(--amber);border-color:var(--amber)" onclick="kickPlayer(' + data['ID'] + ',\'' + data['Name'] + '\')">Kick</button>';
+  } else {
+    lookupResults.style.display = 'none';
+    lookupEmpty.style.display = 'block';
+    lookupEmpty.innerHTML = '<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--danger)" stroke-width="1.5" style="margin-bottom:10px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="8" x2="14" y2="14"/></svg><div>Nessun risultato per <strong>' + q + '</strong></div>';
+  }
+}
+
+// ─── Console ───
+function executeConsoleCmd(){
+  var input = document.getElementById('consoleInput');
+  var cmd = input.value.trim();
+  if(!cmd) return;
+  var output = document.getElementById('consoleOutput');
+  var ts = new Date().toLocaleTimeString('it-IT', {hour12:false});
+  output.insertBefore(createTermLine('$ ' + cmd, 'var(--brand)'), document.getElementById('consoleCursor'));
+  // Process mock commands
+  var response = '';
+  var c = cmd.toLowerCase();
+  if(c === 'help') response = 'Comandi: help, status, players, bans, uptime, clear';
+  else if(c === 'status') response = 'Server: ONLINE | Players: ' + (document.querySelectorAll('#playerTable tbody tr').length - (document.querySelector('#playerTable tbody tr td.sd-empty') ? 1 : 0)) + ' | Bans: ' + document.querySelectorAll('#banTable tbody tr').length + ' | Uptime: {{ stats.uptime }}';
+  else if(c === 'players') response = 'Giocatori connessi: ' + (document.querySelectorAll('#playerTable tbody tr').length);
+  else if(c === 'bans') response = 'Totale ban: ' + document.querySelectorAll('#banTable tbody tr').length;
+  else if(c === 'uptime') response = 'Uptime server: {{ stats.uptime }}';
+  else if(c === 'clear'){ document.getElementById('consoleOutput').innerHTML = '<div id="consoleCursor">▋</div>'; input.value = ''; return; }
+  else response = 'Comando non riconosciuto: ' + cmd + '. Digita "help" per la lista comandi.';
+  output.insertBefore(createTermLine(response, 'var(--text-dim)'), document.getElementById('consoleCursor'));
+  output.scrollTop = output.scrollHeight;
+  input.value = '';
+}
+
+function createTermLine(text, color){
+  var d = document.createElement('div');
+  d.className = 'term-line';
+  d.style.cssText = 'opacity:1;color:' + (color || 'var(--text-dim)') + ';padding:1px 0';
+  d.textContent = '[' + new Date().toLocaleTimeString('it-IT', {hour12:false}) + '] ' + text;
+  return d;
+}
+
+function clearConsole(){
+  var out = document.getElementById('consoleOutput');
+  if(out) out.innerHTML = '<div id="consoleCursor">▋</div>';
+}
+
+// ─── Auto-refresh dashboard data ───
+setInterval(function(){
+  // Simulate updating stats in real-time
+  var onlineEl = document.getElementById('stat-online');
+  if(onlineEl){
+    var v = parseInt(onlineEl.textContent) || 0;
+    onlineEl.textContent = Math.max(0, v + Math.round(Math.random() * 2 - 1));
+  }
+}, 8000);
 </script>
 {% endblock %}
