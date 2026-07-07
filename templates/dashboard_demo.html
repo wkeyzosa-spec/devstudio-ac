@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+{% block title %}Demo Dashboard · DEV STUDIO AC{% endblock %}
+{% block head %}
+<style>
+:root{--sd-sidebar-w:220px}
+.sd-layout{display:flex;min-height:calc(100vh - var(--nav-h));background:var(--bg-2)}
+.sd-sidebar{width:var(--sd-sidebar-w);background:var(--panel);border-right:1px solid var(--border);
+  padding:14px 10px;display:flex;flex-direction:column;gap:2px;position:sticky;top:var(--nav-h);height:calc(100vh - var(--nav-h));overflow-y:auto}
+.sd-sinfo{display:flex;align-items:center;gap:10px;padding:6px 10px 14px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.sd-sinfo .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.sd-sinfo .dot.online{background:var(--good);box-shadow:0 0 8px var(--good)}
+.sd-sinfo b{font-size:13px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sd-sinfo small{color:var(--text-dim);font-size:10px;font-family:var(--mono)}
+.sd-nav{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:7px;color:var(--text-dim);
+  cursor:pointer;font-size:13px;transition:.1s;border:1px solid transparent}
+.sd-nav:hover{background:var(--bg-2);color:var(--text)}
+.sd-nav.active{background:var(--brand-dim);color:#fff;border-color:rgba(204,0,0,.3)}
+.sd-nav .ico{width:15px;height:15px;flex:none;opacity:.7}
+.sd-nav.active .ico{opacity:1}
+.sd-spacer{flex:1;min-height:10px}
+.sd-main{flex:1;padding:20px 24px;overflow-y:auto;max-height:calc(100vh - var(--nav-h))}
+.sd-page{display:none;animation:fadeIn .2s ease}
+.sd-page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.sd-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.sd-top h2{font-size:19px}
+.sd-top .sub{color:var(--text-dim);font-size:12px}
+.sd-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+.sd-card{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:14px 16px}
+.sd-card .ch{display:flex;align-items:center;gap:6px;color:var(--text-dim);font-size:10px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.sd-card .big{font-size:22px;font-weight:800}
+.sd-card .sub{color:var(--text-dim);font-size:11px;margin-top:2px}
+.sd-table-wrap{background:var(--panel);border:1px solid var(--border);border-radius:9px;overflow:hidden;margin-bottom:14px}
+.sd-table{width:100%;border-collapse:collapse;font-size:12px}
+.sd-table th{text-align:left;font-family:var(--mono);font-size:10px;color:var(--text-faint);
+  letter-spacing:.08em;padding:9px 12px;border-bottom:1px solid var(--border-bright);text-transform:uppercase}
+.sd-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.sd-table tr:hover td{background:var(--bg-2)}
+.sd-table .mono{font-family:var(--mono);font-size:11px;color:var(--text-faint)}
+.sd-empty{text-align:center;color:var(--text-dim);padding:30px 0;font-size:13px}
+.sd-toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.sd-search{flex:1;min-width:160px;display:flex;align-items:center;gap:7px;background:var(--bg-2);
+  border:1px solid var(--border);border-radius:7px;padding:7px 11px}
+.sd-search input{flex:1;background:none;border:none;color:var(--text);font-size:12px;outline:none;font-family:var(--sans)}
+.sd-search svg{width:13px;height:13px;color:var(--text-dim);flex:none}
+.sd-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:14px;font-size:10px;font-weight:600;font-family:var(--mono)}
+.sd-pill.ban{background:#2d0a0a;color:var(--danger);border:1px solid #7f1d1d}
+.sd-pill.kick{background:#2d1f0a;color:var(--amber);border:1px solid #7f5d1d}
+.sd-pill.warn{background:#0a1a2d;color:#60a5fa;border:1px solid #1d3d7f}
+.sd-config-group{margin-bottom:16px}
+.sd-config-group h3{font-size:13px;color:var(--text-dim);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.sd-config-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;
+  background:var(--panel);border:1px solid var(--border);border-radius:7px;margin-bottom:5px}
+.sd-config-row .lbl{font-size:12px}
+.sd-config-row .desc{font-size:10px;color:var(--text-dim);margin-top:1px}
+.sd-config-row .val{font-family:var(--mono);font-size:11px;color:var(--brand);background:var(--brand-dim);padding:3px 8px;border-radius:5px}
+
+@media(max-width:768px){
+  .sd-layout{flex-direction:column}
+  .sd-sidebar{width:100%;position:static;height:auto;border-right:none;border-bottom:1px solid var(--border);padding:10px;flex-direction:row;flex-wrap:wrap;gap:3px}
+  .sd-sinfo{display:none}
+  .sd-nav{font-size:12px;padding:5px 9px}
+  .sd-main{padding:12px}
+  .sd-stats{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+{% endblock %}
+{% block content %}
+
+{% set demo_players = [
+  {'id':1,'name':'Marco_Rossi','steam':'steam:11000012345678a','ip':'192.168.1.42','license':'license:abc123def456','discord':'discord:123456789012345678','playtime':'142h'},
+  {'id':2,'name':'Luca_Verde','steam':'steam:11000087654321b','ip':'192.168.1.85','license':'license:xyz789uvw012','discord':'discord:234567890123456789','playtime':'89h'},
+  {'id':3,'name':'Giovanni_Neri','steam':'steam:110000abcdef012','ip':'192.168.1.101','license':'license:ghi345jkl678','discord':'discord:345678901234567890','playtime':'215h'},
+  {'id':4,'name':'Francesco_Blu','steam':'steam:110000112233445','ip':'192.168.1.33','license':'license:mno901pqr234','discord':'discord:456789012345678901','playtime':'56h'},
+  {'id':5,'name':'Andrea_Gialli','steam':'steam:110000556677889','ip':'192.168.1.67','license':'license:stu567vwx890','discord':'discord:567890123456789012','playtime':'178h'},
+  {'id':6,'name':'Stefano_Viola','steam':'steam:110000998877665','ip':'192.168.1.55','license':'license:yz123abc456','discord':'discord:678901234567890123','playtime':'34h'},
+  {'id':7,'name':'Alessandro_Bianchi','steam':'steam:110000443322110','ip':'192.168.1.12','license':'license:def789ghi012','discord':'discord:789012345678901234','playtime':'267h'},
+  {'id':8,'name':'Matteo_Marrone','steam':'steam:110000776655443','ip':'192.168.1.90','license':'license:jkl345mno678','discord':'discord:890123456789012345','playtime':'12h'},
+] %}
+
+{% set demo_bans = [
+  {'ban_id':1247,'player_name':'xX_H4cker_Xx','reason':'Mod menu injection detected (RedEngine)','category':'ban','steam':'steam:110000deadbeef','ip':'45.33.22.11','banned_at':'2026-07-06'},
+  {'ban_id':1246,'player_name':'SpeedDemon99','reason':'Teleport exploit flagged (coordinate jump >5000)','category':'ban','steam':'steam:110000cafebabe','ip':'89.12.45.67','banned_at':'2026-07-06'},
+  {'ban_id':1245,'player_name':'GodMode_On','reason':'Health modification detected (godmode)','category':'kick','steam':'steam:110000baadf00d','ip':'192.168.2.88','banned_at':'2026-07-05'},
+  {'ban_id':1244,'player_name':'FlyHigh420','reason':'Unauthorized entity spawn (vehicle)','category':'kick','steam':'steam:110000d15ea5e','ip':'77.88.99.12','banned_at':'2026-07-05'},
+  {'ban_id':1243,'player_name':'AimbotKing','reason':'Silent aim detected (pitch/yaw anomalies)','category':'ban','steam':'steam:1100005ca1ab1e','ip':'203.45.67.89','banned_at':'2026-07-04'},
+  {'ban_id':1242,'player_name':'NoClipMaster','reason':'Noclip violation (trigger count exceeded)','category':'ban','steam':'steam:110000deadc0de','ip':'156.34.22.11','banned_at':'2026-07-04'},
+  {'ban_id':1241,'player_name':'WallHack_Pro','reason':'ESP/thermal vision detection flagged','category':'warn','steam':'steam:110000f00dcafe','ip':'12.34.56.78','banned_at':'2026-07-03'},
+  {'ban_id':1240,'player_name':'TriggerBot_99','reason':'Triggerbot pattern detected (100% accuracy)','category':'ban','steam':'steam:110000bee5bee5','ip':'67.89.12.34','banned_at':'2026-07-03'},
+] %}
+
+{% set demo_logs = [
+  {'player_name':'xX_H4cker_Xx','action':'ban','reason':'Mod menu injection','time':'22:14:03','detections':3},
+  {'player_name':'SpeedDemon99','action':'kick','reason':'Teleport exploit','time':'22:13:58','detections':2},
+  {'player_name':'NoClipMaster','action':'flag','reason':'Noclip tentativo','time':'22:13:52','detections':1},
+  {'player_name':'AimbotKing','action':'ban','reason':'Silent aim confirmato','time':'22:13:44','detections':4},
+  {'player_name':'GodMode_On','action':'kick','reason':'Godmode rilevato','time':'22:13:38','detections':2},
+  {'player_name':'FlyHigh420','action':'flag','reason':'Spawn veicolo','time':'22:13:31','detections':1},
+  {'player_name':'WallHack_Pro','action':'ban','reason':'ESP detection','time':'22:13:25','detections':3},
+  {'player_name':'TriggerBot_99','action':'flag','reason':'Triggerbot anomalo','time':'22:13:19','detections':2},
+] %}
+
+{% set demo_admins = [
+  {'id':1,'name':'DevStudioOwner','ace':'devstudio.superadmin','online':true},
+  {'id':2,'name':'CapoStaff','ace':'devstudio.admin','online':true},
+  {'id':3,'name':'Moderatore1','ace':'devstudio.mod','online':true},
+  {'id':4,'name':'Moderatore2','ace':'devstudio.mod','online':false},
+  {'id':5,'name':'TrialMod','ace':'devstudio.trial','online':true},
+] %}
+
+<div class="sd-layout">
+  <aside class="sd-sidebar">
+    <div class="sd-sinfo">
+      <div class="dot online"></div>
+      <div><b>DEVSTUDIO RP</b><small>Online · 64 players</small></div>
+    </div>
+    <div class="sd-nav active" data-tab="dashboard">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
+    </div>
+    <div class="sd-nav" data-tab="players">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Players
+    </div>
+    <div class="sd-nav" data-tab="bans">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Bans
+    </div>
+    <div class="sd-nav" data-tab="config">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Config
+    </div>
+    <div class="sd-nav" data-tab="logs">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Logs
+    </div>
+    <div class="sd-nav" data-tab="admins">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Admins
+    </div>
+    <div class="sd-spacer"></div>
+    <div style="padding:10px;border-top:1px solid var(--border);margin-top:6px">
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-faint)">
+        <span style="width:6px;height:6px;border-radius:50%;background:var(--good);box-shadow:0 0 6px var(--good)"></span>
+        Demo · Server live
+      </div>
+    </div>
+  </aside>
+
+  <main class="sd-main">
+    <!-- DASHBOARD -->
+    <div class="sd-page active" id="tab-dashboard">
+      <div class="sd-top"><div><h2>Server <span style="color:var(--brand)">Dashboard</span></h2><div class="sub">Demo preview · dati in tempo reale simulati</div></div></div>
+      <div class="sd-stats">
+        <div class="sd-card"><div class="ch">Players Online</div><div class="big" style="color:var(--good)">64</div><div class="sub">Currently connected</div></div>
+        <div class="sd-card"><div class="ch">Staff Online</div><div class="big">4</div><div class="sub">With admin perms</div></div>
+        <div class="sd-card"><div class="ch">Total Bans</div><div class="big" style="color:var(--danger)">1,247</div><div class="sub">All time</div></div>
+        <div class="sd-card"><div class="ch">Uptime</div><div class="big">14d 7h</div><div class="sub">Server running</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="sd-card"><div class="ch">Recent Bans</div>
+          <div id="demo-recent-bans">
+            {% for b in demo_bans[:5] %}
+            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px">
+              <span>{{ b.player_name }}</span>
+              <span class="sd-pill {{ b.category }}">{{ b.category }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="sd-card"><div class="ch">Detection Activity</div>
+          <div id="demo-recent-logs">
+            {% for log in demo_logs[:5] %}
+            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px">
+              <span>{{ log.player_name }}</span>
+              <span class="sd-pill {{ log.action }}">{{ log.action }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAYERS -->
+    <div class="sd-page" id="tab-players">
+      <div class="sd-top"><div><h2>Players</h2><div class="sub">Connected players &amp; identifiers</div></div></div>
+      <div class="sd-toolbar">
+        <div class="sd-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" id="playerSearch" placeholder="Search by name, ID, or identifier..." oninput="filterTable('playerTable',this.value)"></div>
+      </div>
+      <div class="sd-table-wrap">
+        <table class="sd-table" id="playerTable">
+          <thead><tr><th>ID</th><th>Name</th><th>Steam</th><th>IP</th><th>License</th><th>Discord</th><th>Playtime</th></tr></thead>
+          <tbody>
+            {% for p in demo_players %}
+            <tr>
+              <td class="mono">{{ p.id }}</td>
+              <td><strong>{{ p.name }}</strong></td>
+              <td class="mono">{{ p.steam[:16] }}...</td>
+              <td class="mono">{{ p.ip }}</td>
+              <td class="mono">{{ p.license[:20] }}...</td>
+              <td class="mono">{{ p.discord[:18] }}...</td>
+              <td class="mono">{{ p.playtime }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- BANS -->
+    <div class="sd-page" id="tab-bans">
+      <div class="sd-top"><div><h2>Ban <span style="color:var(--brand)">List</span></h2><div class="sub">All banned players</div></div></div>
+      <div class="sd-toolbar">
+        <div class="sd-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" id="banSearch" placeholder="Search bans..." oninput="filterTable('banTable',this.value)"></div>
+      </div>
+      <div class="sd-table-wrap">
+        <table class="sd-table" id="banTable">
+          <thead><tr><th>ID</th><th>Player</th><th>Reason</th><th>Category</th><th>Steam</th><th>IP</th><th>Date</th></tr></thead>
+          <tbody>
+            {% for b in demo_bans %}
+            <tr>
+              <td class="mono">#{{ b.ban_id }}</td>
+              <td><strong>{{ b.player_name }}</strong></td>
+              <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ b.reason }}</td>
+              <td><span class="sd-pill {{ b.category }}">{{ b.category }}</span></td>
+              <td class="mono">{{ b.steam[:16] }}...</td>
+              <td class="mono">{{ b.ip }}</td>
+              <td class="mono" style="font-size:10px">{{ b.banned_at }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
+    <div class="sd-page" id="tab-config">
+      <div class="sd-top"><div><h2>Configuration</h2><div class="sub">Remote anticheat settings (demo — non modificabile)</div></div></div>
+      <div class="sd-config-group">
+        <h3>Rilevamento Cheat</h3>
+        {% set config_toggles = [
+          ('AntiNoclip', 'Rileva e blocca noclip', true),
+          ('AntiAimbot', 'Raytrace headshot analysis', true),
+          ('AntiGodmode', 'Health/armor manipulation', true),
+          ('AntiVehicleSpawn', 'Vehicle spawn blacklist', true),
+          ('AntiWeaponSpawn', 'Weapon spawn blacklist', true),
+          ('AntiModKeys', 'Mod menu key combinations', true),
+          ('AntiSpectate', 'Unauthorized spectating', true),
+          ('ModMenuScan', 'Mod menu variable scanner', true),
+          ('EventBlacklist', 'Block blacklisted ESX events', true),
+          ('EntitySpawn', 'Entity spawn detection', true),
+          ('SpeedHack', 'Speed hack detection', true),
+          ('SuperJump', 'Super jump prevention', true),
+        ] %}
+        {% for key, desc, val in config_toggles %}
+        <div class="sd-config-row">
+          <div><div class="lbl">{{ key }}</div><div class="desc">{{ desc }}</div></div>
+          <span class="val" style="background:var(--good);color:#000;border-color:var(--good)">ON</span>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="sd-config-group">
+        <h3>Limiti e Soglie</h3>
+        {% set config_limits = [
+          ('NoclipTriggerCount', 5, 'Max noclip warnings before ban'),
+          ('SpeedThreshold', 150, 'Speed limit km/h'),
+          ('AimbotThreshold', 85, 'Headshot % threshold'),
+          ('TeleportDistance', 5000, 'Max coordinate jump'),
+        ] %}
+        {% for key, val, desc in config_limits %}
+        <div class="sd-config-row">
+          <div><div class="lbl">{{ key }}</div><div class="desc">{{ desc }}</div></div>
+          <span class="val">{{ val }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- LOGS -->
+    <div class="sd-page" id="tab-logs">
+      <div class="sd-top"><div><h2>Detection <span style="color:var(--brand)">Logs</span></h2><div class="sub">Recent anticheat activity</div></div>
+        <div style="display:flex;gap:6px">
+          <select id="logFilter" onchange="filterLogs()" style="background:var(--bg-2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:11px;font-family:var(--mono);outline:none">
+            <option value="all">All</option><option value="ban">Bans</option><option value="kick">Kicks</option><option value="flag">Flags</option>
+          </select>
+        </div>
+      </div>
+      <div class="sd-table-wrap">
+        <table class="sd-table" id="logTable">
+          <thead><tr><th>Time</th><th>Player</th><th>Action</th><th>Reason</th><th>Detections</th></tr></thead>
+          <tbody>
+            {% for log in demo_logs %}
+            <tr class="log-row" data-action="{{ log.action }}">
+              <td class="mono" style="font-size:10px;white-space:nowrap">{{ log.time }}</td>
+              <td><strong>{{ log.player_name }}</strong></td>
+              <td><span class="sd-pill {{ log.action }}">{{ log.action }}</span></td>
+              <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ log.reason }}</td>
+              <td class="mono" style="font-size:11px">{{ log.detections }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ADMINS -->
+    <div class="sd-page" id="tab-admins">
+      <div class="sd-top"><div><h2>Administrators</h2><div class="sub">Manage staff permissions</div></div></div>
+      <div class="sd-table-wrap">
+        <table class="sd-table">
+          <thead><tr><th>ID</th><th>Name</th><th>Permission</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for a in demo_admins %}
+            <tr>
+              <td class="mono">{{ a.id }}</td>
+              <td><strong>{{ a.name }}</strong></td>
+              <td><span class="mono" style="color:var(--brand)">{{ a.ace }}</span></td>
+              <td><span class="mono" style="color:{{ 'var(--good)' if a.online else 'var(--text-faint)' }}">{{ 'Online' if a.online else 'Offline' }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// Tab switching
+document.querySelectorAll('.sd-nav[data-tab]').forEach(function(el){
+  el.addEventListener('click', function(){
+    document.querySelectorAll('.sd-nav[data-tab]').forEach(function(x){ x.classList.remove('active'); });
+    document.querySelectorAll('.sd-page').forEach(function(x){ x.classList.remove('active'); });
+    el.classList.add('active');
+    var tab = document.getElementById('tab-' + el.dataset.tab);
+    if(tab) tab.classList.add('active');
+  });
+});
+
+// Table search
+function filterTable(tableId, val){
+  var rows = document.getElementById(tableId).querySelectorAll('tbody tr');
+  var q = val.toLowerCase();
+  rows.forEach(function(r){
+    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+// Log filter
+function filterLogs(){
+  var val = document.getElementById('logFilter').value;
+  document.querySelectorAll('.log-row').forEach(function(r){
+    r.style.display = (val === 'all' || r.dataset.action === val) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

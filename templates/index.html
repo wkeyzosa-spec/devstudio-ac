@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% block title %}DEV STUDIO AC · Protezione Premium FiveM Anticheat{% endblock %}
+{% block content %}
+
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-badge"><span class="dot"></span> v2.0 — Zero False Positives</div>
+    <h1>Proteggi il tuo<br><span class="grad">Server FiveM.</span></h1>
+    <p>L'anticheat più avanzato con <strong>50+ metodi di rilevamento</strong>, risposta in millisecondi e zero falsi positivi. Immunità staff, framework-aware, costruito per server seri.</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="{{ url_for('pricing') }}">Proteggi il Server &#8594;</a>
+      <a class="btn" href="{{ url_for('dashboard_demo') }}">&#9654; Demo Live</a>
+      <a class="btn btn-ghost" href="#features">Scopri le funzionalità</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><span class="num">50+</span><span class="lbl">Rilevamenti</span></div>
+      <div class="hero-stat"><span class="num">&lt;1ms</span><span class="lbl">Risposta</span></div>
+      <div class="hero-stat"><span class="num">0</span><span class="lbl">Falsi Positivi</span></div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="terminal">
+      <div class="terminal-head">
+        <div class="terminal-dot r"></div>
+        <div class="terminal-dot y"></div>
+        <div class="terminal-dot g"></div>
+        <div class="terminal-title">devstudio-ac — live console</div>
+      </div>
+      <div class="terminal-body" id="termBody">
+        <div class="term-line ban"><span class="time">[22:14:03]</span> <span class="tag">BAN</span> — Mod menu injection rilevato (0.2ms)</div>
+        <div class="term-line kick"><span class="time">[22:13:58]</span> <span class="tag">KICK</span> — Teleport exploit flaggato (0.1ms)</div>
+        <div class="term-line flag"><span class="time">[22:13:52]</span> <span class="tag">FLAG</span> — Tentativo noclip bloccato (0.3ms)</div>
+        <div class="term-line ban"><span class="time">[22:13:44]</span> <span class="tag">BAN</span> — Aimbot detection confermato (0.1ms)</div>
+        <div class="term-line kick"><span class="time">[22:13:38]</span> <span class="tag">KICK</span> — Godmode exploit rilevato (0.2ms)</div>
+        <div class="term-line flag"><span class="time">[22:13:31]</span> <span class="tag">FLAG</span> — Spawn veicolo non autorizzato (0.4ms)</div>
+        <div class="term-line ban"><span class="time">[22:13:25]</span> <span class="tag">BAN</span> — Weapon spawn blacklist (0.2ms)</div>
+        <div class="term-line kick"><span class="time">[22:13:19]</span> <span class="tag">KICK</span> — Anti-spectate attivato (0.1ms)</div>
+        <div class="term-line flag"><span class="time">[22:13:12]</span> <span class="tag">FLAG</span> — Mod keys rilevate (0.3ms)</div>
+        <div class="term-line ban"><span class="time">[22:13:05]</span> <span class="tag">BAN</span> — Health manipulation (0.1ms)</div>
+        <div class="term-cursor"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="features">
+  <div class="eyebrow">Protezione a livelli</div>
+  <div class="sec-title">Tutto ciò che serve per <span class="grad">proteggere la tua community</span></div>
+  <div class="sec-sub">Ogni tier include i moduli del livello precedente. Più alto è il tier, più avanzati sono i rilevamenti.</div>
+
+  <div class="features-tier">
+    <div class="tier-card">
+      <div class="tier-name">Base</div>
+      <div class="tier-detect">26 rilevamenti</div>
+      <div class="tier-items">
+        <div class="tier-item"><span class="ck">&#10003;</span><div><b>Movimento & Fisica</b><br>Speed hack, teleport, noclip, super jump</div></div>
+        <div class="tier-item"><span class="ck">&#10003;</span><div><b>Protezione Entità</b><br>Vehicle spawn, mass entity, ped exploit</div></div>
+        <div class="tier-item"><span class="ck">&#10003;</span><div><b>Anti-Crash</b><br>Explosion spam, effetti particellari, network crash</div></div>
+        <div class="tier-item"><span class="ck">&#10003;</span><div><b>Protezione Resource</b><br>Tampering, injection, script non autorizzati</div></div>
+      </div>
+    </div>
+    <div class="tier-card featured">
+      <div class="tier-name">Platinum</div>
+      <div class="tier-detect">62 rilevamenti</div>
+      <div class="tier-items">
+        <div class="tier-item"><span class="ck">&#10003;</span><div><b>Analisi Comportamentale</b><br>Aimbot, silent aim, triggerbot, crosshair snap</div></div>
+        <div class="tier-item"><span class="ck">&#10003;</span><div><b>Rilevamento Executor</b><br>DLL injector, Lua injection, mod menu</div></div>
+        <div class="tier-item"><span class="ck">&#10003;</span><div><b>Sicurezza Eventi</b><br>Event spoofing, spam, rate limiting</div></div>
+        <div class="tier-item"><span class="ck">&#10003;</span><div><b>Pannello Admin NUI</b><br>Kick, ban, unban, teleport, spectate in-game</div></div>
+      </div>
+    </div>
+    <div class="tier-card">
+      <div class="tier-name">Premium</div>
+      <div class="tier-detect">50+ rilevamenti</div>
+      <div class="tier-items">
+        <div class="tier-item"><span class="ck">&#10003;</span><div><b>Protezione Visiva</b><br>Anti-ESP, ghost baiting, thermal block, night vision</div></div>
+        <div class="tier-item"><span class="ck">&#10003;</span><div><b>Rilevamento Avanzato</b><br>ML profiling, client fingerprinting, cheat signatures</div></div>
+        <div class="tier-item"><span class="ck">&#10003;</span><div><b>Evidence Locker</b><br>Screenshot automatici, cloud storage, sorveglianza staff</div></div>
+        <div class="tier-item"><span class="ck">&#10003;</span><div><b>Sistemi Premium</b><br>Session replay, overlay detection, screen recording</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="eyebrow" style="margin-top:40px">Tutti i piani includono</div>
+  <div class="features-grid">
+    <div class="feature">
+      <div class="fico">&#128065;</div>
+      <div><h3>Anti-Noclip</h3><p>Rileva e blocca i cheat noclip con trigger count configurabile e auto-ban.</p></div>
+    </div>
+    <div class="feature">
+      <div class="fico">&#127919;</div>
+      <div><h3>Anti-Aimbot</h3><p>Raytrace analysis avanzata per rilevare headshot anomali e silent aim.</p></div>
+    </div>
+    <div class="feature">
+      <div class="fico">&#128737;</div>
+      <div><h3>Anti-Godmode</h3><p>Previene invincibilità, munizioni infinite, speed hack e godmode in tempo reale.</p></div>
+    </div>
+    <div class="feature">
+      <div class="fico">&#128663;</div>
+      <div><h3>Anti-Veicolo Spawn</h3><p>Blocca generazione non autorizzata di veicoli con contromisure automatiche.</p></div>
+    </div>
+    <div class="feature">
+      <div class="fico">&#127918;</div>
+      <div><h3>Anti-Weapon Spawn</h3><p>Blacklist armi completa + rilevamento generazione da qualsiasi mod menu.</p></div>
+    </div>
+    <div class="feature">
+      <div class="fico">&#9000;</div>
+      <div><h3>Anti-Mod Keys</h3><p>Rileva combinazioni tasti note dei mod menu con screenshot istantanei.</p></div>
+    </div>
+    <div class="feature">
+      <div class="fico">&#128064;</div>
+      <div><h3>Anti-Spectate</h3><p>Rileva spettazione non autorizzata di giocatori attraverso mod menu.</p></div>
+    </div>
+    <div class="feature">
+      <div class="fico">&#128187;</div>
+      <div><h3>Controllo Mod Menu</h3><p>Scansiona variabili di mod menu iniettate in tutte le resource del server.</p></div>
+    </div>
+    <div class="feature">
+      <div class="fico">&#128274;</div>
+      <div><h3>Anti-Eventi Blacklist</h3><p>Blocca oltre 100 eventi ESX blacklist usati dai mod menu.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="cta-section">
+    <h2>Zero falsi positivi. <span class="grad">Massima protezione.</span></h2>
+    <p>Installato in minuti, protegge per sempre. Fidati dei server owner di tutto il mondo.</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="{{ url_for('pricing') }}">Vedi Piani & Prezzi</a>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="reviews">
+  <div class="eyebrow">Community</div>
+  <div class="sec-title">Fidati dai <span class="grad">Server Owner</span></div>
+  <div class="sec-sub">Ecco cosa dice la community che si affida a DEV STUDIO AC ogni giorno.</div>
+  <div class="reviews-wrap">
+    <div class="reviews-track">
+      {% set reviews = [
+        ('MR','Marco R.','Server Owner, 300+ players',5,'"Miglior anticheat che abbia mai usato. Becca modder che altri AC non vedono."'),
+        ('LB','Luca B.','FiveM Developer',5,'"Facile da installare. Il sistema licenze è ottimo per la rivendita."'),
+        ('SD','Simone D.','Community Manager',5,'"Zero falsi positivi dall\'installazione. Community finalmente libera dai modder."'),
+        ('AL','Andrea L.','Server Owner',5,'"Supporto rapido e professionale. Rilevamento aimbot incredibile."'),
+        ('GP','Giovanni P.','Network Admin',5,'"Da quando uso DEV STUDIO AC, i cheater sono spariti. Consigliatissimo."'),
+        ('FM','Francesco M.','Server Developer',5,'"Miglior rapporto qualità-prezzo. Aggiornamenti costanti e supporto premium."'),
+      ] %}
+      {% for i in range(2) %}
+      {% for init,name,role,stars,text in reviews %}
+      <div class="review">
+        <div class="review-top"><div class="review-av">{{ init }}</div>
+          <div><div class="review-name">{{ name }}</div><div class="review-role">{{ role }}</div></div>
+        </div>
+        <div class="stars">{% for s in range(stars) %}&#9733;{% endfor %}</div>
+        <p>{{ text }}</p>
+      </div>
+      {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section" id="faq">
+  <div class="eyebrow">FAQ</div>
+  <div class="sec-title"><span class="grad">Domande frequenti</span></div>
+  <div class="sec-sub">Altre domande? Contattaci su Discord — rispondiamo in minuti.</div>
+  <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-q">Come installo DEV STUDIO AC sul mio server?<span class="pm">+</span></div>
+      <div class="faq-a">Scarica la resource, copiala in <span class="mono">resources/</span>, inserisci la licenza in <span class="mono">Config.License.key</span> e avvia il server. Include README dettagliato e documentazione.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Che differenza c'è tra i piani licenza?<span class="pm">+</span></div>
+      <div class="faq-a">Tutti i piani includono la protezione completa. La differenza è la durata: mensile (€19.99/mese), trimestrale (€49.99), annuale (€119.99) e lifetime (€199.99). Il piano lifetime include diritti di rivendita e ticket illimitati.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Ci sono falsi positivi?<span class="pm">+</span></div>
+      <div class="faq-a">DEV STUDIO AC è progettato per zero falsi positivi. Ogni rilevamento è testato accuratamente. Puoi configurare la sensibilità di ogni modulo individualmente.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Quali framework sono supportati?<span class="pm">+</span></div>
+      <div class="faq-a">Supporta <strong>ESX, QBCore e Qbox</strong>. La protezione funziona a livello di server ed è indipendente dal framework.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Offrite rimborsi?<span class="pm">+</span></div>
+      <div class="faq-a">Data la natura digitale del prodotto, in genere non offriamo rimborsi. Se il prodotto è gravemente difettoso e non possiamo sistemarlo, valutiamo il caso.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Dove ricevo supporto?<span class="pm">+</span></div>
+      <div class="faq-a">Tutto il supporto è gestito tramite Discord. Verifica il tuo acquisto per accedere ai canali dedicati. Tempo di risposta medio: pochi minuti.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="cta-section">
+    <h2>Pronto a proteggere il tuo server?</h2>
+    <p>Scegli il tuo piano oggi. Download istantaneo, aggiornamenti inclusi.</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="{{ url_for('pricing') }}">Vedi i Piani</a>
+      <a class="btn" href="#faq">Leggi le FAQ</a>
+    </div>
+  </div>
+</section>
+
+<script>
+// Terminal live animation
+(function(){
+  var body = document.getElementById('termBody');
+  if(!body) return;
+  var actions = ['ban','kick','flag'];
+  var reasons = [
+    'Mod menu injection rilevato','Teleport exploit flaggato','Aimbot detection confermato',
+    'Godmode exploit rilevato','Spawn veicolo non autorizzato','Weapon spawn blacklist',
+    'Health manipulation','Anti-spectate attivato','Mod keys rilevate','Noclip tentativo bloccato',
+    'Event blacklist violato','Speed hack rilevato','Executor DLL rilevato','Super jump anomalo'
+  ];
+  var cursor = body.querySelector('.term-cursor');
+  setInterval(function(){
+    var line = document.createElement('div');
+    line.className = 'term-line ' + actions[Math.floor(Math.random()*actions.length)];
+    var h = String(new Date().getHours()).padStart(2,'0');
+    var m = String(new Date().getMinutes()).padStart(2,'0');
+    var s = String(new Date().getSeconds()).padStart(2,'0');
+    line.innerHTML = '<span class="time">[' + h + ':' + m + ':' + s + ']</span> <span class="tag">' + line.className.replace('term-line ','').toUpperCase() + '</span> — ' + reasons[Math.floor(Math.random()*reasons.length)] + ' (0.' + Math.floor(Math.random()*5+1) + 'ms)';
+    if(cursor) body.insertBefore(line, cursor);
+    if(body.children.length > 30) body.removeChild(body.firstChild);
+  }, 2000);
+})();
+</script>
+{% endblock %}
