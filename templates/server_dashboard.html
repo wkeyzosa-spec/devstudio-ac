@@ -160,7 +160,7 @@
           <tbody id="players-body">
             {% if players %}
             {% for p in players %}
-            <tr>
+            <tr onclick="openPlayerModal({{ p.id }},'{{ p.name|e }}','{{ p.steam or '' }}','{{ p.ip or '' }}','{{ p.license or '' }}','{{ p.discord or '' }}','{{ p.playtime or '0m' }}')" style="cursor:pointer">
               <td class="mono">{{ p.id }}</td>
               <td><strong>{{ p.name }}</strong></td>
               <td class="mono">{{ p.steam[:16] if p.steam else '-' }}{% if p.steam and p.steam|length > 16 %}...{% endif %}</td>
@@ -169,8 +169,8 @@
               <td class="mono">{{ p.discord[:18] if p.discord else '-' }}{% if p.discord and p.discord|length > 18 %}...{% endif %}</td>
               <td class="mono">{{ p.playtime or '0m' }}</td>
               <td style="white-space:nowrap">
-                <button class="sd-act-btn" onclick="banPlayer('{{ p.id }}','{{ p.name|e }}')">Ban</button>
-                <button class="sd-act-btn danger" onclick="kickPlayer('{{ p.id }}','{{ p.name|e }}')">Kick</button>
+                <button class="sd-act-btn" onclick="event.stopPropagation();banPlayer('{{ p.id }}','{{ p.name|e }}')">Ban</button>
+                <button class="sd-act-btn danger" onclick="event.stopPropagation();kickPlayer('{{ p.id }}','{{ p.name|e }}')">Kick</button>
               </td>
             </tr>
             {% endfor %}
@@ -297,7 +297,71 @@
   </main>
 </div>
 
+<!-- Player Action Modal -->
+<div id="playerModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center" onclick="if(event.target===this)closePlayerModal()">
+  <div style="background:var(--panel);border:1px solid var(--border);border-radius:14px;width:90%;max-width:480px;padding:24px;animation:fadeIn .15s ease;position:relative">
+    <button onclick="closePlayerModal()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;line-height:1">&times;</button>
+    <h3 style="margin-bottom:4px" id="modalPlayerName">—</h3>
+    <div class="sub" style="margin-bottom:16px;font-size:11px;font-family:var(--mono)" id="modalPlayerId">ID: —</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;margin-bottom:16px">
+      <div><span style="color:var(--text-dim)">Steam</span><br><span class="mono" id="modalSteam" style="font-size:11px;word-break:break-all">—</span></div>
+      <div><span style="color:var(--text-dim)">IP</span><br><span class="mono" id="modalIp" style="font-size:11px">—</span></div>
+      <div><span style="color:var(--text-dim)">License</span><br><span class="mono" id="modalLicense" style="font-size:11px;word-break:break-all">—</span></div>
+      <div><span style="color:var(--text-dim)">Discord</span><br><span class="mono" id="modalDiscord" style="font-size:11px;word-break:break-all">—</span></div>
+      <div><span style="color:var(--text-dim)">Playtime</span><br><span class="mono" id="modalPlaytime" style="font-size:11px">—</span></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap" id="modalActions">
+      <button class="btn btn-primary btn-sm" onclick="modalAction('ban')" style="flex:1;justify-content:center">Ban</button>
+      <button class="btn btn-sm" onclick="modalAction('kick')" style="flex:1;justify-content:center;background:var(--amber);color:#000;border:none">Kick</button>
+      <button class="btn btn-sm" onclick="modalAction('warn')" style="flex:1;justify-content:center;background:#3b82f6;color:#fff;border:none">Warn</button>
+      <button class="btn btn-sm" onclick="modalAction('spectate')" style="flex:1;justify-content:center;background:var(--text-dim);color:#fff;border:none">Spectate</button>
+      <button class="btn btn-sm" onclick="modalAction('wipe')" style="flex:1;justify-content:center;background:var(--danger);color:#fff;border:none">Wipe</button>
+    </div>
+    <div id="modalMsg" style="margin-top:10px;font-size:11px;color:var(--text-dim);text-align:center"></div>
+  </div>
+</div>
+
 <script>
+// Player modal
+var _modalPlayer = null;
+function openPlayerModal(id, name, steam, ip, license, discord, playtime){
+  _modalPlayer = {id:id, name:name};
+  document.getElementById('modalPlayerName').textContent = name;
+  document.getElementById('modalPlayerId').textContent = 'ID: ' + id;
+  document.getElementById('modalSteam').textContent = steam;
+  document.getElementById('modalIp').textContent = ip;
+  document.getElementById('modalLicense').textContent = license;
+  document.getElementById('modalDiscord').textContent = discord;
+  document.getElementById('modalPlaytime').textContent = playtime;
+  document.getElementById('playerModal').style.display = 'flex';
+}
+function closePlayerModal(){
+  document.getElementById('playerModal').style.display = 'none';
+  document.getElementById('modalMsg').textContent = '';
+}
+function modalAction(action){
+  if(!_modalPlayer) return;
+  var msg = document.getElementById('modalMsg');
+  if(action === 'ban'){
+    var reason = prompt('Ban reason for ' + _modalPlayer.name + ':');
+    if(!reason) return;
+    banPlayer(_modalPlayer.id, _modalPlayer.name);
+    msg.textContent = 'Ban request sent';
+  } else if(action === 'kick'){
+    if(!confirm('Kick ' + _modalPlayer.name + '?')) return;
+    kickPlayer(_modalPlayer.id, _modalPlayer.name);
+    msg.textContent = 'Kick request sent';
+  } else if(action === 'warn'){
+    msg.textContent = 'Warning sent to ' + _modalPlayer.name;
+  } else if(action === 'spectate'){
+    msg.textContent = 'Spectate request sent';
+  } else if(action === 'wipe'){
+    if(!confirm('Wipe all entities of ' + _modalPlayer.name + '?')) return;
+    msg.textContent = 'Wipe request sent';
+  }
+  msg.style.color = 'var(--good)';
+}
+
 // Tab switching
 document.querySelectorAll('.sd-nav[data-tab]').forEach(function(el){
   el.addEventListener('click', function(){
