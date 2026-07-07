@@ -43,6 +43,68 @@
   </div>
 </section>
 
+<section class="section" id="demo">
+  <div class="eyebrow">Provalo Ora</div>
+  <div class="sec-title">Dashboard in <span class="grad">tempo reale</span></div>
+  <div class="sec-sub">Interfaccia professionale per monitorare il tuo server. Clicca su un player per le azioni rapide.</div>
+  <div class="demo-preview" style="position:relative;margin-top:30px;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--bg-2)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:10px;font-size:12px">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 8px var(--good);display:inline-block"></span>
+        <span style="color:var(--text-dim)">devstudio-ac-1.onrender.com</span>
+        <span class="mono" style="color:var(--good);font-size:10px">&#9679; LIVE</span>
+      </div>
+      <div style="display:flex;gap:6px">
+        <span style="background:var(--brand-dim);color:var(--brand);padding:3px 9px;border-radius:6px;font-size:10px;font-family:var(--mono)">64 players</span>
+        <span style="background:var(--brand-dim);color:var(--brand);padding:3px 9px;border-radius:6px;font-size:10px;font-family:var(--mono)">1,247 bans</span>
+        <span style="background:var(--brand-dim);color:var(--brand);padding:3px 9px;border-radius:6px;font-size:10px;font-family:var(--mono)">14d uptime</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:200px 1fr;min-height:320px">
+      <div style="background:var(--panel);border-right:1px solid var(--border);padding:12px 10px;display:flex;flex-direction:column;gap:2px">
+        <div style="padding:6px 10px;font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Tabs</div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;font-size:12px;background:var(--brand-dim);color:#fff">&#9632; Dashboard</div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;font-size:12px;color:var(--text-dim)">&#128101; Players</div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;font-size:12px;color:var(--text-dim)">&#128683; Bans</div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;font-size:12px;color:var(--text-dim)">&#9881; Config</div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;font-size:12px;color:var(--text-dim)">&#128196; Logs</div>
+        <div style="flex:1"></div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-top:1px solid var(--border);margin-top:6px;font-size:11px;color:var(--text-faint)">
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--good)"></span> Server live
+        </div>
+      </div>
+      <div style="padding:16px 20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:6px">
+          <div><div style="font-size:16px;font-weight:700">Server <span style="color:var(--brand)">Dashboard</span></div><div style="font-size:11px;color:var(--text-dim)">devstudio · real-time</div></div>
+          <a class="btn btn-primary btn-sm" href="{{ url_for('dashboard_demo') }}" style="font-size:11px;padding:6px 14px">Apri Demo Completa &#8594;</a>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">
+          <div style="background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:10px 12px"><div style="font-size:9px;text-transform:uppercase;color:var(--text-dim);letter-spacing:.08em;margin-bottom:3px">Online</div><div style="font-size:18px;font-weight:800;color:var(--good)">64</div></div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:10px 12px"><div style="font-size:9px;text-transform:uppercase;color:var(--text-dim);letter-spacing:.08em;margin-bottom:3px">Staff</div><div style="font-size:18px;font-weight:800">4</div></div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:10px 12px"><div style="font-size:9px;text-transform:uppercase;color:var(--text-dim);letter-spacing:.08em;margin-bottom:3px">Bans</div><div style="font-size:18px;font-weight:800;color:var(--danger)">1,247</div></div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:10px 12px"><div style="font-size:9px;text-transform:uppercase;color:var(--text-dim);letter-spacing:.08em;margin-bottom:3px">Uptime</div><div style="font-size:18px;font-weight:800">14d</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:12px">
+            <div style="font-size:9px;text-transform:uppercase;color:var(--text-dim);letter-spacing:.08em;margin-bottom:6px">Recent Bans</div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px"><span>xX_H4cker_Xx</span><span style="color:var(--danger);font-size:9px;font-family:var(--mono);background:#2d0a0a;padding:1px 6px;border-radius:10px">ban</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px"><span>SpeedDemon99</span><span style="color:var(--amber);font-size:9px;font-family:var(--mono);background:#2d1f0a;padding:1px 6px;border-radius:10px">kick</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px"><span>NoClipMaster</span><span style="color:#60a5fa;font-size:9px;font-family:var(--mono);background:#0a1a2d;padding:1px 6px;border-radius:10px">flag</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:11px"><span>AimbotKing</span><span style="color:var(--danger);font-size:9px;font-family:var(--mono);background:#2d0a0a;padding:1px 6px;border-radius:10px">ban</span></div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:12px">
+            <div style="font-size:9px;text-transform:uppercase;color:var(--text-dim);letter-spacing:.08em;margin-bottom:6px">Detection Activity</div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px"><span>xX_H4cker_Xx</span><span style="color:var(--danger);font-size:9px;font-family:var(--mono);background:#2d0a0a;padding:1px 6px;border-radius:10px">ban</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px"><span>SpeedDemon99</span><span style="color:var(--amber);font-size:9px;font-family:var(--mono);background:#2d1f0a;padding:1px 6px;border-radius:10px">kick</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px"><span>NoClipMaster</span><span style="color:#60a5fa;font-size:9px;font-family:var(--mono);background:#0a1a2d;padding:1px 6px;border-radius:10px">flag</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:11px"><span>AimbotKing</span><span style="color:var(--danger);font-size:9px;font-family:var(--mono);background:#2d0a0a;padding:1px 6px;border-radius:10px">ban</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="section" id="features">
   <div class="eyebrow">Protezione a livelli</div>
   <div class="sec-title">Tutto ciò che serve per <span class="grad">proteggere la tua community</span></div>
