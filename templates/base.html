@@ -23,12 +23,16 @@
     <a href="{{ url_for('index') }}">Home</a>
     <a href="{{ url_for('index') }}#features">Funzionalità</a>
     <a href="{{ url_for('pricing') }}">Prezzi</a>
+    <a href="{{ url_for('index') }}#reviews">Recensioni</a>
+    <a href="{{ url_for('index') }}#faq">FAQ</a>
     <a href="{{ url_for('dashboard_demo') }}">Demo</a>
     {% if current_user.is_authenticated %}
     <a href="{{ url_for('dashboard') }}">Dashboard</a>
     {% endif %}
+    <a class="btn btn-primary btn-sm" href="{{ url_for('pricing') }}" style="padding:7px 14px;font-size:11px">Inizia ora</a>
   </div>
   <div class="nav-right">
+    <div class="lang-sel">IT <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></div>
     {% if current_user.is_authenticated %}
     <a class="btn" href="{{ url_for('dashboard') }}" style="padding:9px 16px;font-size:13px">{{ current_user.email[:20] }}</a>
     <a class="btn btn-primary" href="{{ url_for('logout') }}" style="padding:9px 16px;font-size:13px">Logout</a>
@@ -46,6 +50,8 @@
   <a href="{{ url_for('index') }}">Home</a>
   <a href="{{ url_for('index') }}#features">Funzionalità</a>
   <a href="{{ url_for('pricing') }}">Prezzi</a>
+  <a href="{{ url_for('index') }}#reviews">Recensioni</a>
+  <a href="{{ url_for('index') }}#faq">FAQ</a>
   <a href="{{ url_for('dashboard_demo') }}">Demo</a>
   {% if current_user.is_authenticated %}
   <a href="{{ url_for('dashboard') }}">Dashboard</a>
