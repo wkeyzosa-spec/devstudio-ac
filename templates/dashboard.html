@@ -76,9 +76,10 @@
           <div class="ch"><span class="badge {{ lic.status }}">{{ lic.status }}</span> <span style="margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--text-faint)">{{ lic.type|capitalize }}</span></div>
           <div class="license-key-display" style="margin-bottom:12px">{{ lic.key[:32] }}{% if lic.key|length > 32 %}...{% endif %}</div>
           <div class="sub" style="margin-bottom:2px"><strong>Crea:</strong> {{ lic.created_at.strftime('%d/%m/%Y') }}</div>
-          <div class="sub" style="margin-bottom:14px"><strong>Scade:</strong> {{ lic.expires_at.strftime('%d/%m/%Y') if lic.expires_at else 'Mai (Lifetime)' }}</div>
+          <div class="sub" style="margin-bottom:4px"><strong>Scade:</strong> {{ lic.expires_at.strftime('%d/%m/%Y') if lic.expires_at else 'Mai (Lifetime)' }}</div>
           {% if lic.status == 'active' %}
-          <a class="btn btn-primary" href="{{ url_for('download', token=lic.download_token) }}" style="width:100%;justify-content:center;padding:10px;font-size:12px">&#8595; Scarica Resource</a>
+          <a class="btn btn-primary" href="{{ url_for('download', token=lic.download_token) }}" style="width:100%;justify-content:center;padding:10px;font-size:12px;margin-bottom:6px">&#8595; Scarica Resource</a>
+          <a class="btn btn-ghost" href="/dashboard/server/{{ lic.server_id }}" style="width:100%;justify-content:center;padding:10px;font-size:12px">&#128202; Pannello Live</a>
           {% endif %}
         </div>
         {% endfor %}
